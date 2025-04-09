@@ -18,7 +18,7 @@ const links = [
 const Footer = () => {
 	return (
 		<footer className="py-6 md:py-8">
-			<div className="container-centered flex flex-col gap-4 px-4 md:flex-row md:gap-8 md:px-6">
+			<div className="container-centered flex flex-col gap-4 md:flex-row md:gap-8">
 				<p className="text-muted-foreground text-sm md:flex-1">
 					{new Date().getFullYear()} MicroTales. All rights reserved.
 				</p>

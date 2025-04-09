@@ -4,7 +4,7 @@ import Link from "next/link";
 
 const Header = () => {
 	return (
-		<header className="sticky top-0 z-10 bg-background px-4 py-6 md:px-6">
+		<header className="sticky top-0 z-10 bg-background py-6">
 			<div className="container-centered flex items-center justify-between">
 				<Link href="/" className="flex items-center gap-2">
 					<span className="font-bold text-xl">MicroTales</span>

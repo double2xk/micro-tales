@@ -7,7 +7,7 @@ const Hero = () => {
 			id={"hero"}
 			className="w-full bg-gradient-to-b from-purple-50 to-background py-16 md:py-24 lg:py-32"
 		>
-			<div className="container-centered px-4 md:px-6">
+			<div className="container-centered">
 				<div className="flex flex-col items-center justify-center space-y-4 text-center">
 					<div className="space-y-2">
 						<h1 className="font-bold font-serif text-4xl tracking-tighter sm:text-5xl md:text-6xl lg:text-7xl/none">
