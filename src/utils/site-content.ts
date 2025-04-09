@@ -3,9 +3,17 @@ export const siteContent = {
 	description:
 		"A platform for reading and publishing microfiction stories under 500 words.",
 	links: {
-		browse: {
-			href: "/browse",
+		stories: {
+			href: "/stories",
 			label: "Browse Stories",
+		},
+		story: {
+			href: "/stories/{id}",
+			label: "Stories",
+		},
+		claimStory: {
+			href: "/stories/claim",
+			label: "Claim Story",
 		},
 		profile: {
 			href: "/profile",
@@ -22,10 +30,6 @@ export const siteContent = {
 		login: {
 			href: "/login",
 			label: "Log In",
-		},
-		story: {
-			href: "/story/{id}",
-			label: "Stories",
 		},
 		forgotPassword: {
 			href: "/forgot-password",

@@ -1,4 +1,5 @@
 import {Button} from "@/components/ui/button";
+import {siteContent} from "@/utils/site-content";
 import Link from "next/link";
 
 const Hero = () => {
@@ -19,7 +20,7 @@ const Hero = () => {
 					</div>
 					<div className="space-x-2">
 						<Button size="lg" className="rounded-full" asChild={true}>
-							<Link href="/signup" prefetch={true}>
+							<Link href={siteContent.links.signup.href} prefetch={true}>
 								Join as Author
 							</Link>
 						</Button>
@@ -29,7 +30,7 @@ const Hero = () => {
 							className="rounded-full"
 							asChild={true}
 						>
-							<Link href="/browse" prefetch={true}>
+							<Link href={siteContent.links.stories.href} prefetch={true}>
 								Browse Stories
 							</Link>
 						</Button>

@@ -10,7 +10,7 @@ const Header = () => {
 					<span className="font-bold text-xl">MicroTales</span>
 				</Link>
 				<nav className="hidden gap-6 md:flex">
-					<Link href={siteContent.links.browse.href}>Browse</Link>
+					<Link href={siteContent.links.stories.href}>Browse</Link>
 					<Link href={siteContent.links.submit.href}>Submit</Link>
 					<Link href={siteContent.links.profile.href}>Profile</Link>
 				</nav>
