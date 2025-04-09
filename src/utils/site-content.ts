@@ -27,5 +27,9 @@ export const siteContent = {
 			href: "/story/{id}",
 			label: "Stories",
 		},
+		forgotPassword: {
+			href: "/forgot-password",
+			label: "Forgot Password",
+		},
 	},
 };
