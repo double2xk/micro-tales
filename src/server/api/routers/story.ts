@@ -2,7 +2,7 @@ import {generateSecretCode} from "@/lib/utils";
 import {db} from "@/server/db";
 import {stories} from "@/server/db/schema";
 import {TRPCError} from "@trpc/server";
-import {desc, eq} from "drizzle-orm";
+import {and, count, desc, eq, ilike, or} from "drizzle-orm";
 import {z} from "zod";
 import {createTRPCRouter, protectedProcedure, publicProcedure} from "../trpc";
 
@@ -167,6 +167,79 @@ export const storyRouter = createTRPCRouter({
 					code: "INTERNAL_SERVER_ERROR",
 					message: "An error occurred while fetching the author's stories.",
 				});
+			}
+		}),
+	getStoriesPaginated: publicProcedure
+		.input(
+			z.object({
+				page: z.number().min(1).default(1),
+				limit: z.number().min(1).max(100).default(10),
+				genre: z.string().optional(),
+				search: z.string().optional(),
+				isPublic: z.boolean().optional(),
+				sortBy: z
+					.enum(["newest", "highestRated", "mostRead"])
+					.default("newest"),
+			}),
+		)
+		.query(async ({ input }) => {
+			const { page, limit, genre, search, isPublic, sortBy } = input;
+			const offset = (page - 1) * limit;
+
+			try {
+				const whereClauses = [];
+
+				if (genre) whereClauses.push(eq(stories.genre, genre));
+				if (isPublic !== undefined)
+					whereClauses.push(eq(stories.isPublic, isPublic));
+				if (search)
+					whereClauses.push(
+						or(
+							ilike(stories.title, `%${search}%`),
+							ilike(stories.content, `%${search}%`),
+						),
+					);
+
+				const orderClause =
+					sortBy === "highestRated"
+						? desc(stories.rating)
+						: sortBy === "mostRead"
+							? desc(stories.views)
+							: desc(stories.createdAt);
+
+				const [data, totalCount] = await Promise.all([
+					db.query.stories.findMany({
+						where: and(...whereClauses),
+						orderBy: [orderClause],
+						limit,
+						offset,
+						with: {
+							author: {
+								// @ts-ignore
+								name: true,
+							},
+						},
+					}),
+					db
+						.select({ count: count() })
+						.from(stories)
+						.where(and(...whereClauses))
+						.then((res) => res[0]?.count ?? 0),
+				]);
+
+				const totalPages = Math.ceil(totalCount / limit);
+
+				return {
+					data,
+					page,
+					totalPages,
+				};
+			} catch (error) {
+				return {
+					data: [],
+					page,
+					totalPages: 0,
+				};
 			}
 		}),
 });

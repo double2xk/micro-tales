@@ -6,68 +6,13 @@ import {Label} from "@/components/ui/label";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue,} from "@/components/ui/select";
 import {Switch} from "@/components/ui/switch";
 import {cn} from "@/lib/utils";
+import type {Story} from "@/server/db/schema";
+import {api} from "@/trpc/server";
 import {siteContent} from "@/utils/site-content";
 import {ArrowRight, Search, Star} from "lucide-react";
 import Link from "next/link";
 
-const stories = [
-	{
-		id: "1",
-		title: "The Last Light",
-		author: "Sarah Johnson",
-		genre: "Sci-Fi",
-		rating: 4.5,
-		excerpt:
-			"The last light flickered in the distance. She had been walking for days, following its persistent glow across the barren landscape...",
-	},
-	{
-		id: "2",
-		title: "Whispers in the Wind",
-		author: "Michael Chen",
-		genre: "Mystery",
-		rating: 4.2,
-		excerpt:
-			"The note arrived on Tuesday, carried by a wind that shouldn't have been blowing...",
-	},
-	{
-		id: "3",
-		title: "Five Minutes",
-		author: "Elena Rodriguez",
-		genre: "Romance",
-		rating: 4.8,
-		excerpt:
-			"Five minutes was all it took to change everything. The train was late...",
-	},
-	{
-		id: "4",
-		title: "The Forgotten Door",
-		author: "James Wilson",
-		genre: "Fable",
-		rating: 3.9,
-		excerpt:
-			"Nobody remembered when the door first appeared in the village square...",
-	},
-	{
-		id: "5",
-		title: "Midnight Visitor",
-		author: "Aisha Patel",
-		genre: "Spooky",
-		rating: 4.7,
-		excerpt:
-			"The knocking came at exactly midnight, three sharp raps that echoed through...",
-	},
-	{
-		id: "6",
-		title: "The Observer",
-		author: "Thomas Wright",
-		genre: "Sci-Fi",
-		rating: 4.1,
-		excerpt:
-			"From my window, I could see them all. Every morning, same routine...",
-	},
-];
-
-const StoryCard = (props: (typeof stories)[number]) => {
+const StoryCard = (props: Story) => {
 	return (
 		<Card className={"gap-1.5"}>
 			<CardHeader>
@@ -75,7 +20,7 @@ const StoryCard = (props: (typeof stories)[number]) => {
 					<h3 className="font-bold font-serif text-xl">{props.title}</h3>
 					<Badge variant="default">{props.genre}</Badge>
 				</div>
-				<CardDescription>by {props.author}</CardDescription>
+				<CardDescription>by Some Name</CardDescription>
 			</CardHeader>
 			<CardContent className={"space-y-2.5"}>
 				<div className="flex items-center">
@@ -90,7 +35,7 @@ const StoryCard = (props: (typeof stories)[number]) => {
 					</span>
 				</div>
 				<p className="mb-4 line-clamp-2 font-story text-paper-charcoal text-sm dark:text-paper-vanilla">
-					{props.excerpt}
+					{props.content.substring(0, 200)}...
 				</p>
 			</CardContent>
 			<CardFooter className="mt-auto justify-end">
@@ -105,8 +50,13 @@ const StoryCard = (props: (typeof stories)[number]) => {
 	);
 };
 
-export default function BrowsePage() {
-	// This would be fetched from an API in a real implementation
+export default async function BrowsePage() {
+	const stories = await api.story.getStoriesPaginated({
+		page: 1,
+		limit: 6,
+	});
+
+	console.log(stories);
 
 	return (
 		<div className="container-centered px-4 py-12 lg:max-w-5xl">
@@ -171,10 +121,10 @@ export default function BrowsePage() {
 				</div>
 			</div>
 
-			<div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-				{stories.map((story) => (
-					<StoryCard key={story.id} {...story} />
-				))}
+			<div className="grid min-h-[20rem] grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+				{stories.data.length
+					? stories.data.map((story) => <StoryCard key={story.id} {...story} />)
+					: null}
 			</div>
 		</div>
 	);

@@ -98,6 +98,7 @@ export const stories = createTable("story", {
 	content: text("content").notNull(),
 	genre: text("genre").notNull(),
 	rating: integer("rating").default(0),
+	views: integer("views").default(0),
 	readingTime: integer("reading_time").notNull(),
 	createdAt: timestamp("created_at").defaultNow(),
 	editedAt: timestamp("edited_at").defaultNow(),
@@ -108,6 +109,8 @@ export const stories = createTable("story", {
 		onDelete: "set null",
 	}),
 });
+
+export type Story = typeof stories.$inferSelect;
 
 export const storiesRelations = relations(stories, ({ one }) => ({
 	author: one(users, {
@@ -128,6 +131,8 @@ export const ratings = createTable("ratings", {
 	rating: integer("rating").notNull(),
 	createdAt: timestamp("created_at").defaultNow(),
 });
+
+export type Rating = typeof ratings.$inferSelect;
 
 export const ratingRelations = relations(ratings, ({ one }) => ({
 	user: one(users, {
@@ -154,6 +159,8 @@ export const storyReads = createTable("story_read", {
 	readAt: timestamp("read_at").defaultNow(),
 });
 
+export type StoryRead = typeof storyReads.$inferSelect;
+
 export const storyReadRelations = relations(storyReads, ({ one }) => ({
 	user: one(users, {
 		fields: [storyReads.userId],
@@ -176,6 +183,8 @@ export const editAccessTokens = createTable("edit_access_tokens", {
 	token: text("token").notNull(),
 	expiresAt: timestamp("expires_at").notNull(),
 });
+
+export type EditAccessToken = typeof editAccessTokens.$inferSelect;
 
 export const editAccessTokensRelations = relations(
 	editAccessTokens,
