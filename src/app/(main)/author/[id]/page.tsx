@@ -22,7 +22,7 @@ export default async function ProfilePage(props: Props) {
 
 	if (!author?.id) {
 		return (
-			<div className="container-centered flex flex-col items-center justify-center gap-3 py-10">
+			<div className="container-centered flex flex-col items-center justify-center gap-3 py-12">
 				<h1 className="text-center font-bold text-2xl">Author not found</h1>
 				<Button asChild={true}>
 					<Link href={"/"}>

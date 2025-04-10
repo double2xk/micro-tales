@@ -42,7 +42,7 @@ export default async function BrowsePage(props: Props) {
 	});
 
 	return (
-		<div className="container-centered px-4 pb-12 lg:max-w-5xl">
+		<div className="container-centered px-4 py-12 lg:max-w-5xl">
 			<div className="mb-8 flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
 				<h1 className="font-bold font-serif text-3xl text-paper-charcoal dark:text-paper-vanilla">
 					Browse Stories
