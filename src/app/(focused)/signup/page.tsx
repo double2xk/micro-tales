@@ -6,11 +6,10 @@ import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/
 import {Input} from "@/components/ui/input"
 import {zodResolver} from "@hookform/resolvers/zod"
 import {useMutation} from "@tanstack/react-query";
-import {useSession} from "next-auth/react";
+import {signIn, useSession} from "next-auth/react";
 import Link from "next/link"
 import {useForm} from "react-hook-form"
 import * as z from "zod"
-import {signIn} from "@/server/auth";
 
 const formSchema = z
 	.object({

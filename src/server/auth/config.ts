@@ -31,6 +31,7 @@ declare module "next-auth" {
  * @see https://next-auth.js.org/configuration/options
  */
 export const authConfig = {
+	providers: [],
 	adapter: DrizzleAdapter(db, {
 		usersTable: users,
 		accountsTable: accounts,
