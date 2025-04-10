@@ -5,15 +5,21 @@ import {Checkbox} from "@/components/ui/checkbox"
 import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form"
 import {Input} from "@/components/ui/input"
 import {zodResolver} from "@hookform/resolvers/zod"
+import {useMutation} from "@tanstack/react-query";
+import {useSession} from "next-auth/react";
 import Link from "next/link"
 import {useForm} from "react-hook-form"
 import * as z from "zod"
+import {signIn} from "@/server/auth";
 
 const formSchema = z
 	.object({
-		username: z
+		firstName: z
 			.string()
-			.min(3, { message: "Username must be at least 3 characters" }),
+			.min(3, { message: "First name must be at least 3 characters" }),
+		lastName: z
+			.string()
+			.min(3, { message: "Last name must be at least 3 characters" }),
 		email: z.string().email({ message: "Please enter a valid email address" }),
 		password: z
 			.string()
@@ -29,10 +35,14 @@ const formSchema = z
 	});
 
 export default function SignupPage() {
+	const { data, status } = useSession();
+	console.log(status);
+	console.log(data);
 	const form = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
 		defaultValues: {
-			username: "",
+			firstName: "",
+			lastName: "",
 			email: "",
 			password: "",
 			confirmPassword: "",
@@ -40,9 +50,27 @@ export default function SignupPage() {
 		},
 	});
 
+	const signUpAction = useMutation({
+		mutationKey: ["signup"],
+		mutationFn: async (values: z.infer<typeof formSchema>) => {
+			const result = await signIn("credentials", {
+				name: `${values.firstName} ${values.lastName}`,
+				email: values.email,
+				password: values.password,
+				redirect: false,
+			});
+
+			if (result) {
+				throw new Error(result.error);
+			}
+
+			console.log(result);
+		},
+	});
+
 	function onSubmit(values: z.infer<typeof formSchema>) {
 		// This would connect to your registration API in a real implementation
-		console.log(values);
+		void signUpAction.mutate(values);
 	}
 
 	return (
@@ -57,12 +85,25 @@ export default function SignupPage() {
 				<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
 					<FormField
 						control={form.control}
-						name="username"
+						name="firstName"
 						render={({ field }) => (
 							<FormItem>
-								<FormLabel>Username</FormLabel>
+								<FormLabel>Fisrt Name</FormLabel>
 								<FormControl>
-									<Input placeholder="johndoe" {...field} />
+									<Input placeholder="John" {...field} />
+								</FormControl>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
+					<FormField
+						control={form.control}
+						name="lastName"
+						render={({ field }) => (
+							<FormItem>
+								<FormLabel>Last Name</FormLabel>
+								<FormControl>
+									<Input placeholder="Doe" {...field} />
 								</FormControl>
 								<FormMessage />
 							</FormItem>

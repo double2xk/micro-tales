@@ -4,6 +4,7 @@ import {TRPCReactProvider} from "@/trpc/react";
 import type {Metadata} from "next";
 import {Inter, Literata, Merriweather, Source_Sans_3} from "next/font/google";
 import type React from "react";
+import {SessionProvider} from "next-auth/react";
 
 export const metadata: Metadata = {
 	title: {
@@ -46,7 +47,9 @@ export default function RootLayout({
 					literata.variable,
 				)}
 			>
-				<TRPCReactProvider>{children}</TRPCReactProvider>
+				<SessionProvider>
+					<TRPCReactProvider>{children}</TRPCReactProvider>
+				</SessionProvider>
 			</body>
 		</html>
 	);

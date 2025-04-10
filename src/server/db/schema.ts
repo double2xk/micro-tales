@@ -15,8 +15,7 @@ export const createTable = pgTableCreator((name) => `micro-tales-app_${name}`);
 // -----------------
 export const users = createTable("user", (d) => ({
 	id: d
-		.varchar({ length: 255 })
-		.notNull()
+		.uuid("id")
 		.primaryKey()
 		.$defaultFn(() => crypto.randomUUID()),
 	name: d.varchar({ length: 255 }),
@@ -42,10 +41,7 @@ export const usersRelations = relations(users, ({ many }) => ({
 export const accounts = createTable(
 	"account",
 	(d) => ({
-		userId: d
-			.varchar({ length: 255 })
-			.notNull()
-			.references(() => users.id),
+		userId: d.uuid("user_id").references(() => users.id),
 		type: d.varchar({ length: 255 }).$type<AdapterAccount["type"]>().notNull(),
 		provider: d.varchar({ length: 255 }).notNull(),
 		providerAccountId: d.varchar({ length: 255 }).notNull(),
@@ -71,10 +67,7 @@ export const sessions = createTable(
 	"session",
 	(d) => ({
 		sessionToken: d.varchar({ length: 255 }).notNull().primaryKey(),
-		userId: d
-			.varchar({ length: 255 })
-			.notNull()
-			.references(() => users.id),
+		userId: d.uuid("user_id").references(() => users.id),
 		expires: d.timestamp({ mode: "date", withTimezone: true }).notNull(),
 	}),
 	(t) => [index("t_user_id_idx").on(t.userId)],
