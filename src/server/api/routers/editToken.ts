@@ -1,0 +1,156 @@
+import {db} from "@/server/db";
+import {editAccessTokens, stories} from "@/server/db/schema";
+import {generateEditToken} from "@/utils/generateToken";
+import {TRPCError} from "@trpc/server";
+import {addHours} from "date-fns";
+import {and, eq} from "drizzle-orm";
+import {z} from "zod";
+import {createTRPCRouter, publicProcedure} from "../trpc";
+
+export const editTokenRouter = createTRPCRouter({
+	claimStory: publicProcedure
+		.input(
+			z.object({
+				email: z.string().email(),
+				secret: z.string().min(1),
+			}),
+		)
+		.mutation(async ({ input }) => {
+			try {
+				// Attempt to find a guest story with the given secret code
+				const story = await db.query.stories.findFirst({
+					where: and(
+						eq(stories.secretCode, input.secret),
+						eq(stories.isGuest, true),
+					),
+				});
+
+				// Throw error if no story is found
+				if (!story) {
+					throw new TRPCError({
+						code: "BAD_REQUEST",
+						message: "Invalid secret code.",
+					});
+				}
+
+				// Generate a new edit token
+				const token = generateEditToken();
+				const expiresAt = addHours(new Date(), 2); // Token expires in 1 hour
+
+				// Insert the token into the database
+				await db.insert(editAccessTokens).values({
+					storyId: story.id,
+					token,
+					expiresAt,
+				});
+
+				return { token, storyId: story.id };
+			} catch (error) {
+				console.error("Error claiming story:", error);
+				throw new TRPCError({
+					code: "INTERNAL_SERVER_ERROR",
+					message: "An error occurred while claiming the story.",
+				});
+			}
+		}),
+
+	getEditStoryDetailsByToken: publicProcedure
+		.input(z.object({ token: z.string() }))
+		.query(async ({ input }) => {
+			try {
+				// Attempt to find the edit access token
+				const result = await db.query.editAccessTokens.findFirst({
+					where: eq(editAccessTokens.token, input.token),
+					with: {
+						story: true,
+					},
+				});
+
+				// Throw error if the token is not found
+				if (!result) {
+					throw new TRPCError({
+						code: "NOT_FOUND",
+						message: "Token not found.",
+					});
+				}
+
+				// Check if the token is expired
+				if (new Date() > new Date(result.expiresAt)) {
+					throw new TRPCError({
+						code: "BAD_REQUEST",
+						message: "Token expired.",
+					});
+				}
+
+				// Return the associated story
+				return result.story;
+			} catch (error) {
+				console.error("Error fetching story by token:", error);
+				throw new TRPCError({
+					code: "INTERNAL_SERVER_ERROR",
+					message: "An error occurred while fetching the story details.",
+				});
+			}
+		}),
+
+	editStoryByToken: publicProcedure
+		.input(
+			z.object({
+				token: z.string(),
+				title: z.string(),
+				content: z.string(),
+				genre: z.string(),
+				isPublic: z.boolean(),
+			}),
+		)
+		.mutation(async ({ input }) => {
+			try {
+				// Attempt to find the edit access token
+				const result = await db.query.editAccessTokens.findFirst({
+					where: eq(editAccessTokens.token, input.token),
+				});
+
+				// Throw error if the token is invalid or expired
+				if (!result) {
+					throw new TRPCError({
+						code: "BAD_REQUEST",
+						message: "Invalid or expired token.",
+					});
+				}
+
+				// Calculate the reading time based on content length
+				const wordCount = input.content.trim().split(/\s+/).length;
+				const readingTime = Math.ceil(wordCount / 200);
+
+				// Generate a new secret code for the story
+				const newSecret = generateEditToken(); // Refresh secret
+
+				// Update the story with the new details
+				await db
+					.update(stories)
+					.set({
+						title: input.title,
+						content: input.content,
+						genre: input.genre,
+						isPublic: input.isPublic,
+						editedAt: new Date(),
+						readingTime,
+						secretCode: newSecret,
+					})
+					.where(eq(stories.id, result.storyId));
+
+				// Clean up the edit token
+				await db
+					.delete(editAccessTokens)
+					.where(eq(editAccessTokens.token, input.token));
+
+				return { success: true };
+			} catch (error) {
+				console.error("Error editing story by token:", error);
+				throw new TRPCError({
+					code: "INTERNAL_SERVER_ERROR",
+					message: "An error occurred while editing the story.",
+				});
+			}
+		}),
+});

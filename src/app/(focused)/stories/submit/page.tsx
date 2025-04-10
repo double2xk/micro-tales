@@ -4,20 +4,10 @@ import SubmitStoryForm, {type SubmitStoryFormValues} from "@/components/forms/su
 import {Button} from "@/components/ui/button";
 import {Card, CardFooter} from "@/components/ui/card";
 import BackToStories from "@/components/utils/back-to-stories";
-import {cn} from "@/lib/utils";
+import {cn, generateSecretCode} from "@/lib/utils";
 import {siteContent} from "@/utils/site-content";
 import Link from "next/link";
 import {useEffect, useState} from "react";
-
-const generateCode = () => {
-	const prefix = "TALE";
-	const randomNum = Math.floor(1000 + Math.random() * 9000);
-	const randomLetters = Array(4)
-		.fill(0)
-		.map(() => String.fromCharCode(65 + Math.floor(Math.random() * 26)))
-		.join("");
-	return `${prefix}-${randomNum}-${randomLetters}`;
-};
 
 export default function SubmitPage() {
 	const [submitted, setSubmitted] = useState(false);
@@ -26,7 +16,7 @@ export default function SubmitPage() {
 
 	// Generate a random security code on component mount
 	useEffect(() => {
-		setSecurityCode(generateCode());
+		setSecurityCode(generateSecretCode());
 	}, []);
 
 	function onSubmit(values: SubmitStoryFormValues) {
@@ -102,7 +92,7 @@ export default function SubmitPage() {
 							className="w-full sm:w-auto"
 							onClick={() => {
 								setSubmitted(false);
-								setSecurityCode(generateCode());
+								setSecurityCode(generateSecretCode());
 							}}
 						>
 							Submit Another Story

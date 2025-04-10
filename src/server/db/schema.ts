@@ -1,6 +1,6 @@
-import { relations, sql } from "drizzle-orm";
-import { index, pgTableCreator, primaryKey } from "drizzle-orm/pg-core";
-import type { AdapterAccount } from "next-auth/adapters";
+import {relations, sql} from "drizzle-orm";
+import {boolean, index, integer, pgTableCreator, primaryKey, text, timestamp, uuid,} from "drizzle-orm/pg-core";
+import type {AdapterAccount} from "next-auth/adapters";
 
 /**
  * This is an example of how to use the multi-project schema feature of Drizzle ORM. Use the same
@@ -10,27 +10,9 @@ import type { AdapterAccount } from "next-auth/adapters";
  */
 export const createTable = pgTableCreator((name) => `micro-tales-app_${name}`);
 
-export const posts = createTable(
-	"post",
-	(d) => ({
-		id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
-		name: d.varchar({ length: 256 }),
-		createdById: d
-			.varchar({ length: 255 })
-			.notNull()
-			.references(() => users.id),
-		createdAt: d
-			.timestamp({ withTimezone: true })
-			.default(sql`CURRENT_TIMESTAMP`)
-			.notNull(),
-		updatedAt: d.timestamp({ withTimezone: true }).$onUpdate(() => new Date()),
-	}),
-	(t) => [
-		index("created_by_idx").on(t.createdById),
-		index("name_idx").on(t.name),
-	],
-);
-
+// -----------------
+// Account Table
+// -----------------
 export const users = createTable("user", (d) => ({
 	id: d
 		.varchar({ length: 255 })
@@ -45,10 +27,15 @@ export const users = createTable("user", (d) => ({
 			withTimezone: true,
 		})
 		.default(sql`CURRENT_TIMESTAMP`),
-	image: d.varchar({ length: 255 }),
+	passwordHash: d.varchar({ length: 255 }).notNull().default(""),
+	createdAt: d.timestamp("created_at").defaultNow(),
+	updatedAt: d.timestamp("updated_at").defaultNow(),
 }));
 
 export const usersRelations = relations(users, ({ many }) => ({
+	stories: many(stories),
+	ratings: many(ratings),
+	reads: many(storyReads),
 	accounts: many(accounts),
 }));
 
@@ -105,4 +92,102 @@ export const verificationTokens = createTable(
 		expires: d.timestamp({ mode: "date", withTimezone: true }).notNull(),
 	}),
 	(t) => [primaryKey({ columns: [t.identifier, t.token] })],
+);
+
+// -----------------
+// Story Table
+// -----------------
+export const stories = createTable("story", {
+	id: uuid("id").defaultRandom().primaryKey(),
+	title: text("title").notNull(),
+	content: text("content").notNull(),
+	genre: text("genre").notNull(),
+	rating: integer("rating").default(0),
+	readingTime: integer("reading_time").notNull(),
+	createdAt: timestamp("created_at").defaultNow(),
+	editedAt: timestamp("edited_at").defaultNow(),
+	isPublic: boolean("is_public").default(true),
+	isGuest: boolean("is_guest").default(false),
+	secretCode: text("secret_code"),
+	authorId: uuid("author_id").references(() => users.id, {
+		onDelete: "set null",
+	}),
+});
+
+export const storiesRelations = relations(stories, ({ one }) => ({
+	author: one(users, {
+		fields: [stories.authorId],
+		references: [users.id],
+	}),
+}));
+
+// -----------------
+// Ratings Table
+// -----------------
+export const ratings = createTable("ratings", {
+	id: uuid("id").defaultRandom().primaryKey(),
+	userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }),
+	storyId: uuid("story_id").references(() => stories.id, {
+		onDelete: "cascade",
+	}),
+	rating: integer("rating").notNull(),
+	createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const ratingRelations = relations(ratings, ({ one }) => ({
+	user: one(users, {
+		fields: [ratings.userId],
+		references: [users.id],
+	}),
+	story: one(stories, {
+		fields: [ratings.storyId],
+		references: [stories.id],
+	}),
+}));
+
+// -----------------
+// Story Reads Table
+// -----------------
+export const storyReads = createTable("story_read", {
+	id: uuid("id").primaryKey().defaultRandom(),
+	userId: uuid("user_id").references(() => users.id, {
+		onDelete: "set null",
+	}),
+	storyId: uuid("story_id").references(() => stories.id, {
+		onDelete: "cascade",
+	}),
+	readAt: timestamp("read_at").defaultNow(),
+});
+
+export const storyReadRelations = relations(storyReads, ({ one }) => ({
+	user: one(users, {
+		fields: [storyReads.userId],
+		references: [users.id],
+	}),
+	story: one(stories, {
+		fields: [storyReads.storyId],
+		references: [stories.id],
+	}),
+}));
+
+// -----------------
+// Edit Access Tokens Table
+// -----------------
+export const editAccessTokens = createTable("edit_access_tokens", {
+	id: uuid("id").defaultRandom().primaryKey(),
+	storyId: uuid("story_id").references(() => stories.id, {
+		onDelete: "cascade",
+	}),
+	token: text("token").notNull(),
+	expiresAt: timestamp("expires_at").notNull(),
+});
+
+export const editAccessTokensRelations = relations(
+	editAccessTokens,
+	({ one }) => ({
+		story: one(stories, {
+			fields: [editAccessTokens.storyId],
+			references: [stories.id],
+		}),
+	}),
 );
