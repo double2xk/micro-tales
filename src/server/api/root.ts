@@ -1,3 +1,4 @@
+import {authRouter} from "@/server/api/routers/auth";
 import {createCallerFactory, createTRPCRouter} from "@/server/api/trpc"; /**
  * This is the primary router for your server.
  *
@@ -8,6 +9,7 @@ import {ratingRouter} from "./routers/rating";
 import {storyRouter} from "./routers/story";
 
 export const appRouter = createTRPCRouter({
+	auth: authRouter,
 	story: storyRouter,
 	rating: ratingRouter,
 	editToken: editTokenRouter,

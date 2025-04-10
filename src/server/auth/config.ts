@@ -1,8 +1,11 @@
-import {DrizzleAdapter} from "@auth/drizzle-adapter";
-import type {DefaultSession, NextAuthConfig} from "next-auth";
-
 import {db} from "@/server/db";
-import {accounts, sessions, users, verificationTokens,} from "@/server/db/schema";
+import {accounts, sessions, type User, users, verificationTokens,} from "@/server/db/schema";
+import {verifyPassword} from "@/utils/hashPassword";
+import {siteContent} from "@/utils/site-content";
+import {DrizzleAdapter} from "@auth/drizzle-adapter";
+import {eq} from "drizzle-orm";
+import type {DefaultSession, NextAuthConfig} from "next-auth";
+import Credentials from "next-auth/providers/credentials"
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -12,17 +15,8 @@ import {accounts, sessions, users, verificationTokens,} from "@/server/db/schema
  */
 declare module "next-auth" {
 	interface Session extends DefaultSession {
-		user: {
-			id: string;
-			// ...other properties
-			// role: UserRole;
-		} & DefaultSession["user"];
+		user: Pick<User, "id" | "name" | "email">;
 	}
-
-	// interface User {
-	//   // ...other properties
-	//   // role: UserRole;
-	// }
 }
 
 /**
@@ -31,7 +25,46 @@ declare module "next-auth" {
  * @see https://next-auth.js.org/configuration/options
  */
 export const authConfig = {
-	providers: [],
+	providers: [
+		Credentials({
+			name: "Credentials",
+			credentials: {
+				email: { label: "Email", type: "email" },
+				password: { label: "Password", type: "password" },
+			},
+			async authorize(credentials) {
+				const { email, password } = credentials as {
+					email: string;
+					password: string;
+				};
+
+				const [user] = await db
+					.select()
+					.from(users)
+					.where(eq(users.email, email));
+
+				console.log("USER", user);
+				console.log("CREDENTIALS", credentials);
+
+				if (!user) throw new Error("No user found");
+
+				const isValid = await verifyPassword(password, user?.passwordHash);
+
+				if (!isValid) {
+					throw new Error("Invalid credentials");
+				}
+
+				return {
+					id: user.id,
+					name: user.name,
+					email: user.email,
+				};
+			},
+		}),
+	],
+	session: {
+		strategy: "jwt",
+	},
 	adapter: DrizzleAdapter(db, {
 		usersTable: users,
 		accountsTable: accounts,
@@ -39,9 +72,12 @@ export const authConfig = {
 		verificationTokensTable: verificationTokens,
 	}),
 	callbacks: {
-		session: async ({ session, user }) => {
-			session.user.id = user.id; // Attach the user ID to the session object
+		session: async ({ session, token }) => {
+			if (token.sub) session.user.id = token.sub;
 			return session;
 		},
+	},
+	pages: {
+		signIn: siteContent.links.login.href,
 	},
 } satisfies NextAuthConfig;

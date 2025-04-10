@@ -31,6 +31,8 @@ export const users = createTable("user", (d) => ({
 	updatedAt: d.timestamp("updated_at").defaultNow(),
 }));
 
+export type User = typeof users.$inferSelect;
+
 export const usersRelations = relations(users, ({ many }) => ({
 	stories: many(stories),
 	ratings: many(ratings),

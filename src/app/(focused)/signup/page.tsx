@@ -1,15 +1,15 @@
 "use client";
 
-import {Button} from "@/components/ui/button"
-import {Checkbox} from "@/components/ui/checkbox"
-import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form"
-import {Input} from "@/components/ui/input"
-import {zodResolver} from "@hookform/resolvers/zod"
-import {useMutation} from "@tanstack/react-query";
+import {Button} from "@/components/ui/button";
+import {Checkbox} from "@/components/ui/checkbox";
+import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage,} from "@/components/ui/form";
+import {Input} from "@/components/ui/input";
+import {api} from "@/trpc/react";
+import {zodResolver} from "@hookform/resolvers/zod";
 import {signIn, useSession} from "next-auth/react";
-import Link from "next/link"
-import {useForm} from "react-hook-form"
-import * as z from "zod"
+import Link from "next/link";
+import {useForm} from "react-hook-form";
+import * as z from "zod";
 
 const formSchema = z
 	.object({
@@ -49,27 +49,30 @@ export default function SignupPage() {
 		},
 	});
 
-	const signUpAction = useMutation({
-		mutationKey: ["signup"],
-		mutationFn: async (values: z.infer<typeof formSchema>) => {
-			const result = await signIn("credentials", {
-				name: `${values.firstName} ${values.lastName}`,
-				email: values.email,
-				password: values.password,
-				redirect: false,
-			});
-
-			if (result) {
-				throw new Error(result.error);
+	const signUpAction = api.auth.signUp.useMutation({
+		mutationKey: ["signUp"],
+		onSuccess: async (data, prev) => {
+			console.log("data", data);
+			if (data?.user?.id) {
+				console.log("DATA", data);
+				await signIn("credentials", {
+					...prev,
+					redirectTo: "/",
+				});
 			}
-
-			console.log(result);
+		},
+		onError: async (data) => {
+			console.log(data.message);
 		},
 	});
 
 	function onSubmit(values: z.infer<typeof formSchema>) {
 		// This would connect to your registration API in a real implementation
-		void signUpAction.mutate(values);
+		void signUpAction.mutate({
+			name: `${values.firstName} ${values.lastName}`,
+			email: values.email,
+			password: values.password,
+		});
 	}
 
 	return (
@@ -87,7 +90,7 @@ export default function SignupPage() {
 						name="firstName"
 						render={({ field }) => (
 							<FormItem>
-								<FormLabel>Fisrt Name</FormLabel>
+								<FormLabel>First Name</FormLabel>
 								<FormControl>
 									<Input placeholder="John" {...field} />
 								</FormControl>
@@ -151,28 +154,36 @@ export default function SignupPage() {
 						control={form.control}
 						name="terms"
 						render={({ field }) => (
-							<FormItem className="flex flex-row items-start gap-3">
-								<FormControl>
-									<Checkbox
-										checked={field.value}
-										onCheckedChange={field.onChange}
-									/>
-								</FormControl>
-								<FormLabel className="text-sm">
-									I agree to the{" "}
-									<Link href="/terms" className="underline">
-										Terms of Service
-									</Link>{" "}
-									and{" "}
-									<Link href="/privacy" className="underline">
-										Privacy Policy
-									</Link>
-								</FormLabel>
+							<FormItem>
+								<div className={"flex flex-row items-start gap-3"}>
+									<FormControl>
+										<Checkbox
+											checked={field.value}
+											onCheckedChange={field.onChange}
+										/>
+									</FormControl>
+									<FormLabel className="inline text-sm">
+										I agree to the{" "}
+										<Link href="/terms" className="inline underline">
+											Terms of Service
+										</Link>{" "}
+										and{" "}
+										<Link href="/privacy" className="inline underline">
+											Privacy Policy
+										</Link>
+									</FormLabel>
+								</div>
+
 								<FormMessage />
 							</FormItem>
 						)}
 					/>
-					<Button type="submit" className="w-full" size={"lg"}>
+					<Button
+						type="submit"
+						className="w-full"
+						size={"lg"}
+						disabled={signUpAction.isPending || form.formState.isLoading}
+					>
 						Create Account
 					</Button>
 				</form>
