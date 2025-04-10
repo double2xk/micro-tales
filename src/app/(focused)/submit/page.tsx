@@ -3,8 +3,8 @@
 import SubmitStoryForm, {type SubmitStoryFormValues} from "@/components/forms/submit-story-form";
 import {Button} from "@/components/ui/button";
 import {Card, CardFooter} from "@/components/ui/card";
+import BackToStories from "@/components/utils/back-to-stories";
 import {siteContent} from "@/utils/site-content";
-import {ArrowLeft} from "lucide-react";
 import Link from "next/link";
 import {useEffect, useState} from "react";
 
@@ -37,16 +37,7 @@ export default function SubmitPage() {
 
 	return (
 		<div className="container-centered max-w-lg py-12">
-			<Button
-				variant={"link"}
-				className={"!p-0 mb-3 opacity-60"}
-				asChild={true}
-			>
-				<Link href={siteContent.links.stories.href}>
-					<ArrowLeft />
-					Back to stories
-				</Link>
-			</Button>
+			<BackToStories />
 			<div className="mb-8">
 				<h1 className="mb-2 font-bold font-serif text-3xl">
 					Submit Your Story

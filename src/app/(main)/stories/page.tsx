@@ -6,6 +6,7 @@ import {Label} from "@/components/ui/label";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue,} from "@/components/ui/select";
 import {Switch} from "@/components/ui/switch";
 import {cn} from "@/lib/utils";
+import {siteContent} from "@/utils/site-content";
 import {ArrowRight, Search, Star} from "lucide-react";
 import Link from "next/link";
 
@@ -92,10 +93,9 @@ const StoryCard = (props: (typeof stories)[number]) => {
 					{props.excerpt}
 				</p>
 			</CardContent>
-
-			<CardFooter className="justify-end">
+			<CardFooter className="mt-auto justify-end">
 				<Button size="sm" variant="ghost" asChild={true} className={"group"}>
-					<Link href={`/story/${props.id}`}>
+					<Link href={siteContent.links.story.href.replace("{id}", props.id)}>
 						Read
 						<ArrowRight className="ml-1 h-4 w-4 transition-all group-hover:ml-1.5" />
 					</Link>
