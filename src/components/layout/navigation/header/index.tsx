@@ -12,7 +12,9 @@ const Header = () => {
 				<nav className="hidden gap-6 md:flex">
 					<Link href={siteContent.links.stories.href}>Browse</Link>
 					<Link href={siteContent.links.submit.href}>Submit</Link>
-					<Link href={siteContent.links.profile.href}>Profile</Link>
+					<Link href={siteContent.links.author.href.replace("{id}", "12345")}>
+						Profile
+					</Link>
 				</nav>
 				<div className="flex gap-2">
 					<Button variant="ghost" size="sm" asChild={true}>

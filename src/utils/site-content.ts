@@ -15,9 +15,9 @@ export const siteContent = {
 			href: "/stories/claim",
 			label: "Claim Story",
 		},
-		profile: {
-			href: "/profile",
-			label: "Profile",
+		author: {
+			href: "/author/{id}",
+			label: "Author",
 		},
 		submit: {
 			href: "/submit",

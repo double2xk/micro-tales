@@ -4,6 +4,7 @@ import SubmitStoryForm, {type SubmitStoryFormValues} from "@/components/forms/su
 import {Button} from "@/components/ui/button";
 import {Card, CardFooter} from "@/components/ui/card";
 import BackToStories from "@/components/utils/back-to-stories";
+import {cn} from "@/lib/utils";
 import {siteContent} from "@/utils/site-content";
 import Link from "next/link";
 import {useEffect, useState} from "react";
@@ -36,7 +37,9 @@ export default function SubmitPage() {
 	}
 
 	return (
-		<div className="container-centered max-w-lg py-12">
+		<div
+			className={cn("container-centered max-w-lg pb-12", !submitted && "pt-12")}
+		>
 			<BackToStories />
 			<div className="mb-8">
 				<h1 className="mb-2 font-bold font-serif text-3xl">
@@ -48,7 +51,7 @@ export default function SubmitPage() {
 				</p>
 			</div>
 
-			{!submitted ? (
+			{submitted ? (
 				<Card className={"p-6 text-center"}>
 					<div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
 						<svg

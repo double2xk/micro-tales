@@ -20,7 +20,7 @@ const submitStoryFormSchema = z
 			.string()
 			.min(3, { message: "Title must be at least 3 characters" })
 			.max(100, { message: "Title must be less than 100 characters" }),
-		genre: z.string({ required_error: "Please select a genre" }),
+		genre: z.string().min(3, { message: "Please select a genre" }),
 		content: z
 			.string()
 			.min(10, { message: "Story must be at least 10 characters" })
