@@ -1,7 +1,7 @@
 import HeaderAuthButtons from "@/components/layout/navigation/header/auth-buttons";
 import {auth} from "@/server/auth";
 import {siteContent} from "@/utils/site-content";
-import {AlbumIcon, CircleUserIcon, PencilLineIcon, TextIcon,} from "lucide-react";
+import {AlbumIcon, CircleUserIcon, FilePenLine, PencilLineIcon, TextIcon,} from "lucide-react";
 import Link from "next/link";
 
 const Header = async () => {
@@ -36,6 +36,17 @@ const Header = async () => {
 							}
 						/>
 						Submit
+					</Link>
+					<Link
+						href={siteContent.links.claimStory.href}
+						className={"group relative flex items-center hover:pl-5"}
+					>
+						<FilePenLine
+							className={
+								"absolute left-0 size-4 opacity-0 transition-opacity group-hover:opacity-100"
+							}
+						/>
+						Claim
 					</Link>
 					<Link
 						href={
