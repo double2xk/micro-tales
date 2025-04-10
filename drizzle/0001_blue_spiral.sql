@@ -1,0 +1,1 @@
+ALTER TABLE "micro-tales-app_story" ADD COLUMN "views" integer DEFAULT 0;
