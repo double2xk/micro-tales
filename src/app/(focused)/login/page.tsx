@@ -1,12 +1,17 @@
 "use client";
 
+import {Alert, AlertDescription, AlertTitle} from "@/components/ui/alert";
 import {Button} from "@/components/ui/button"
 import {Checkbox} from "@/components/ui/checkbox"
 import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form"
 import {Input} from "@/components/ui/input"
 import {siteContent} from "@/utils/site-content";
-import {zodResolver} from "@hookform/resolvers/zod"
+import {zodResolver} from "@hookform/resolvers/zod";
+import {AlertTriangleIcon} from "lucide-react";
+import {signIn} from "next-auth/react";
 import Link from "next/link"
+import {useSearchParams} from "next/navigation";
+import {useEffect, useState} from "react";
 import {useForm} from "react-hook-form"
 import * as z from "zod"
 
@@ -19,6 +24,11 @@ const formSchema = z.object({
 });
 
 export default function LoginPage() {
+	const [isLoading, setLoading] = useState(false);
+	const [errorMessage, setErrorMessage] = useState("");
+	const params = useSearchParams();
+	const error = params.get("error");
+
 	const form = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
 		defaultValues: {
@@ -29,9 +39,27 @@ export default function LoginPage() {
 	});
 
 	function onSubmit(values: z.infer<typeof formSchema>) {
+		setLoading(true);
 		// This would connect to your authentication API in a real implementation
-		console.log(values);
+		void signIn("credentials", { ...values, redirectTo: "/" }).catch((err) => {
+			setLoading(false);
+			setErrorMessage(
+				err?.message === "CredentialsSignin"
+					? "Invalid credentials. Please try again."
+					: (err.message ?? "Unknown error"),
+			);
+		});
 	}
+
+	useEffect(() => {
+		if (error) {
+			setErrorMessage(
+				error === "CredentialsSignin"
+					? "Invalid credentials. Please try again."
+					: error,
+			);
+		}
+	}, [error]);
 
 	return (
 		<div className="container-centered max-w-md space-y-6">
@@ -50,7 +78,11 @@ export default function LoginPage() {
 							<FormItem>
 								<FormLabel>Email</FormLabel>
 								<FormControl>
-									<Input placeholder="m@example.com" {...field} />
+									<Input
+										placeholder="m@example.com"
+										{...field}
+										disabled={isLoading}
+									/>
 								</FormControl>
 								<FormMessage />
 							</FormItem>
@@ -71,7 +103,12 @@ export default function LoginPage() {
 									</Link>
 								</div>
 								<FormControl>
-									<Input type="password" placeholder={"********"} {...field} />
+									<Input
+										type="password"
+										placeholder={"********"}
+										{...field}
+										disabled={isLoading}
+									/>
 								</FormControl>
 								<FormMessage />
 							</FormItem>
@@ -86,14 +123,27 @@ export default function LoginPage() {
 									<Checkbox
 										checked={field.value}
 										onCheckedChange={field.onChange}
+										disabled={isLoading}
 									/>
 								</FormControl>
 								<FormLabel>Remember me</FormLabel>
 							</FormItem>
 						)}
 					/>
-					<Button type="submit" size={"lg"} className="w-full">
-						Sign In
+					{errorMessage ? (
+						<Alert variant={"destructive"}>
+							<AlertTriangleIcon />
+							<AlertTitle>Authentication Error</AlertTitle>
+							<AlertDescription>{errorMessage}</AlertDescription>
+						</Alert>
+					) : null}
+					<Button
+						type="submit"
+						size={"lg"}
+						className="w-full"
+						disabled={isLoading}
+					>
+						{isLoading ? "Signing in..." : "Sign in"}
 					</Button>
 				</form>
 			</Form>

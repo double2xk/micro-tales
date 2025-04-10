@@ -1,5 +1,5 @@
 import {db} from "@/server/db";
-import {accounts, sessions, type User, users, verificationTokens,} from "@/server/db/schema";
+import {accounts, sessions, users, verificationTokens,} from "@/server/db/schema";
 import {verifyPassword} from "@/utils/hashPassword";
 import {siteContent} from "@/utils/site-content";
 import {DrizzleAdapter} from "@auth/drizzle-adapter";
@@ -15,7 +15,11 @@ import Credentials from "next-auth/providers/credentials"
  */
 declare module "next-auth" {
 	interface Session extends DefaultSession {
-		user: Pick<User, "id" | "name" | "email">;
+		user: {
+			id: string;
+			name: string;
+			email: string;
+		};
 	}
 }
 
@@ -38,27 +42,32 @@ export const authConfig = {
 					password: string;
 				};
 
-				const [user] = await db
-					.select()
-					.from(users)
-					.where(eq(users.email, email));
+				try {
+					const [user] = await db
+						.select()
+						.from(users)
+						.where(eq(users.email, email));
 
-				console.log("USER", user);
-				console.log("CREDENTIALS", credentials);
+					console.log("USER", user);
+					console.log("CREDENTIALS", credentials);
 
-				if (!user) throw new Error("No user found");
+					if (!user) throw new Error("No user found");
 
-				const isValid = await verifyPassword(password, user?.passwordHash);
+					const isValid = await verifyPassword(password, user?.passwordHash);
 
-				if (!isValid) {
-					throw new Error("Invalid credentials");
+					if (!isValid) {
+						throw new Error("Invalid credentials");
+					}
+
+					return {
+						id: user.id,
+						name: user.name,
+						email: user.email,
+					};
+				} catch (error) {
+					console.log("[Auth Config] Sign In Error", error);
+					return null;
 				}
-
-				return {
-					id: user.id,
-					name: user.name,
-					email: user.email,
-				};
 			},
 		}),
 	],

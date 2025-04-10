@@ -5,6 +5,7 @@ import type {Metadata} from "next";
 import {Inter, Literata, Merriweather, Source_Sans_3} from "next/font/google";
 import type React from "react";
 import {SessionProvider} from "next-auth/react";
+import {Toaster} from "@/components/ui/sonner";
 
 export const metadata: Metadata = {
 	title: {
@@ -50,6 +51,7 @@ export default function RootLayout({
 				<SessionProvider>
 					<TRPCReactProvider>{children}</TRPCReactProvider>
 				</SessionProvider>
+				<Toaster />
 			</body>
 		</html>
 	);

@@ -1,9 +1,12 @@
-import {Button} from "@/components/ui/button";
+import HeaderAuthButtons from "@/components/layout/navigation/header/auth-buttons";
+import {auth} from "@/server/auth";
 import {siteContent} from "@/utils/site-content";
-import {AlbumIcon, CircleUserIcon, PencilLineIcon, TextIcon} from "lucide-react";
+import {AlbumIcon, CircleUserIcon, PencilLineIcon, TextIcon,} from "lucide-react";
 import Link from "next/link";
 
-const Header = () => {
+const Header = async () => {
+	const session = await auth();
+
 	return (
 		<header className="sticky top-0 z-10 bg-background py-6">
 			<div className="container-centered flex items-center justify-between">
@@ -35,7 +38,11 @@ const Header = () => {
 						Submit
 					</Link>
 					<Link
-						href={siteContent.links.author.href.replace("{id}", "12345")}
+						href={
+							session?.user?.id
+								? siteContent.links.author.href.replace("{id}", session.user.id)
+								: siteContent.links.login.href
+						}
 						className={"group relative flex items-center hover:pl-5"}
 					>
 						<CircleUserIcon
@@ -46,14 +53,7 @@ const Header = () => {
 						Profile
 					</Link>
 				</nav>
-				<div className="flex gap-2">
-					<Button variant="ghost" size="sm" asChild={true}>
-						<Link href={siteContent.links.login.href}>Log In</Link>
-					</Button>
-					<Button size="sm" asChild={true}>
-						<Link href={siteContent.links.signup.href}>Sign Up</Link>
-					</Button>
-				</div>
+				<HeaderAuthButtons user={session?.user || null} />
 			</div>
 		</header>
 	);
