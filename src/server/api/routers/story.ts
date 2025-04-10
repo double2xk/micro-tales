@@ -157,10 +157,7 @@ export const storyRouter = createTRPCRouter({
 				});
 
 				if (!result || result.length === 0) {
-					throw new TRPCError({
-						code: "NOT_FOUND",
-						message: "No stories found for the given author.",
-					});
+					return [];
 				}
 
 				return result;
