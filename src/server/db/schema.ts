@@ -1,5 +1,5 @@
 import {relations, sql} from "drizzle-orm";
-import {boolean, index, integer, pgTableCreator, primaryKey, text, timestamp, uuid,} from "drizzle-orm/pg-core";
+import {boolean, index, integer, pgEnum, pgTableCreator, primaryKey, text, timestamp, uuid,} from "drizzle-orm/pg-core";
 import type {AdapterAccount} from "next-auth/adapters";
 
 /**
@@ -92,11 +92,37 @@ export const verificationTokens = createTable(
 // -----------------
 // Story Table
 // -----------------
+// Define the enum type
+export const storyGenreEnum = pgEnum("story_genre", [
+	"adventure",
+	"fantasy",
+	"horror",
+	"mystery",
+	"romance",
+	"sci-fi",
+	"thriller",
+	"western",
+	"misc",
+]);
+
+// Optional TypeScript helper for app-level use:
+export enum StoryGenre {
+	Adventure = "adventure",
+	Fantasy = "fantasy",
+	Horror = "horror",
+	Mystery = "mystery",
+	Romance = "romance",
+	ScienceFiction = "sci-fi",
+	Thriller = "thriller",
+	Western = "western",
+	Misc = "misc",
+}
+
 export const stories = createTable("story", {
 	id: uuid("id").defaultRandom().primaryKey(),
 	title: text("title").notNull(),
 	content: text("content").notNull(),
-	genre: text("genre").notNull(),
+	genre: storyGenreEnum("genre").notNull(),
 	rating: integer("rating").default(0),
 	views: integer("views").default(0),
 	readingTime: integer("reading_time").notNull(),

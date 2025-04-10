@@ -121,7 +121,12 @@ export default async function BrowsePage() {
 				</div>
 			</div>
 
-			<div className="grid min-h-[20rem] grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+			<div
+				className={cn(
+					"grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3",
+					stories.data.length ? "h-max" : "min-h-[20rem]",
+				)}
+			>
 				{stories.data.length
 					? stories.data.map((story) => <StoryCard key={story.id} {...story} />)
 					: null}

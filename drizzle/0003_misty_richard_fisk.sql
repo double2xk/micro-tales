@@ -1,0 +1,1 @@
+ALTER TYPE "public"."story_genre" RENAME TO "genre";
