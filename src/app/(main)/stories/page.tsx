@@ -1,72 +1,59 @@
+import {DebouncedInput} from "@/components/query/input-query";
 import {Badge} from "@/components/ui/badge";
 import {Button, buttonVariants} from "@/components/ui/button";
 import {Card, CardContent, CardDescription, CardFooter, CardHeader,} from "@/components/ui/card";
-import {Input} from "@/components/ui/input";
 import {Label} from "@/components/ui/label";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue,} from "@/components/ui/select";
 import {Switch} from "@/components/ui/switch";
 import {cn} from "@/lib/utils";
-import type {Story} from "@/server/db/schema";
+import {type Story, StoryGenre} from "@/server/db/schema";
 import {api} from "@/trpc/server";
+import {getGenreColor} from "@/utils/colors";
 import {siteContent} from "@/utils/site-content";
 import {ArrowRight, Search, Star} from "lucide-react";
 import Link from "next/link";
 
-const StoryCard = (props: Story) => {
-	return (
-		<Card className={"gap-1.5"}>
-			<CardHeader>
-				<div className="flex items-start justify-between">
-					<h3 className="font-bold font-serif text-xl">{props.title}</h3>
-					<Badge variant="default">{props.genre}</Badge>
-				</div>
-				<CardDescription>by Some Name</CardDescription>
-			</CardHeader>
-			<CardContent className={"space-y-2.5"}>
-				<div className="flex items-center">
-					{[1, 2, 3, 4, 5].map((star) => (
-						<Star
-							key={star}
-							className={`h-4 w-4 ${star <= 4 ? "fill-yellow-500 text-yellow-500" : "text-foreground/20"}`}
-						/>
-					))}
-					<span className="ml-1 text-muted-foreground text-xs">
-						{props.rating}
-					</span>
-				</div>
-				<p className="mb-4 line-clamp-2 font-story text-paper-charcoal text-sm dark:text-paper-vanilla">
-					{props.content.substring(0, 200)}...
-				</p>
-			</CardContent>
-			<CardFooter className="mt-auto justify-end">
-				<Button size="sm" variant="ghost" asChild={true} className={"group"}>
-					<Link href={siteContent.links.story.href.replace("{id}", props.id)}>
-						Read
-						<ArrowRight className="ml-1 h-4 w-4 transition-all group-hover:ml-1.5" />
-					</Link>
-				</Button>
-			</CardFooter>
-		</Card>
-	);
+type Props = {
+	params: Promise<{ id: string }>;
+	searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 };
 
-export default async function BrowsePage() {
+export default async function BrowsePage(props: Props) {
+	const searchParams = await props.searchParams;
+	const [page, search, genre, sortBy, publicOnly] = [
+		searchParams.page
+			? Number.isNaN(Number(searchParams.page))
+				? 1
+				: Number(searchParams.page)
+			: 1,
+		searchParams.search ? String(searchParams.search) : "",
+		searchParams.genre ? String(searchParams.genre) : "all",
+		searchParams.sort ? String(searchParams.sort) : "newest",
+		searchParams.publicOnly === "true",
+	];
+
 	const stories = await api.story.getStoriesPaginated({
-		page: 1,
 		limit: 6,
+		page,
+		search,
+		genre: genre === "all" ? undefined : genre,
+		sortBy,
+		publicOnly,
 	});
 
-	console.log(stories);
-
 	return (
-		<div className="container-centered px-4 py-12 lg:max-w-5xl">
+		<div className="container-centered px-4 pb-12 lg:max-w-5xl">
 			<div className="mb-8 flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
 				<h1 className="font-bold font-serif text-3xl text-paper-charcoal dark:text-paper-vanilla">
 					Browse Stories
 				</h1>
 				<div className="relative w-full md:w-auto">
 					<Search className="-translate-y-1/2 absolute top-1/2 left-3 h-4 w-4 text-paper-gray" />
-					<Input placeholder="Search stories..." className={"pl-10"} />
+					<DebouncedInput
+						queryKey={"search"}
+						placeholder="Search stories..."
+						className={"pl-10"}
+					/>
 				</div>
 			</div>
 
@@ -86,12 +73,11 @@ export default async function BrowsePage() {
 							</SelectTrigger>
 							<SelectContent>
 								<SelectItem value="all">All Genres</SelectItem>
-								<SelectItem value="fable">Fable</SelectItem>
-								<SelectItem value="spooky">Spooky</SelectItem>
-								<SelectItem value="romance">Romance</SelectItem>
-								<SelectItem value="sci-fi">Sci-Fi</SelectItem>
-								<SelectItem value="mystery">Mystery</SelectItem>
-								<SelectItem value="misc">Misc</SelectItem>
+								{Object.entries(StoryGenre).map(([key, value]) => (
+									<SelectItem key={key} value={value}>
+										{value.charAt(0).toUpperCase() + value.slice(1)}
+									</SelectItem>
+								))}
 							</SelectContent>
 						</Select>
 					</div>
@@ -134,3 +120,45 @@ export default async function BrowsePage() {
 		</div>
 	);
 }
+const StoryCard = (props: Story & { author: { name: string } }) => {
+	return (
+		<Card className={"gap-1.5"}>
+			<CardHeader>
+				<div className="flex items-start justify-between">
+					<h3 className="font-bold font-serif text-xl">{props.title}</h3>
+					<Badge
+						variant="default"
+						className={getGenreColor(props.genre as StoryGenre)}
+					>
+						{props.genre.charAt(0).toUpperCase() + props.genre.slice(1)}
+					</Badge>
+				</div>
+				<CardDescription>by {props?.author?.name}</CardDescription>
+			</CardHeader>
+			<CardContent className={"space-y-2.5"}>
+				<div className="flex items-center">
+					{[1, 2, 3, 4, 5].map((star) => (
+						<Star
+							key={star}
+							className={`h-4 w-4 ${star <= (props.rating ?? 0) ? "fill-yellow-500 text-yellow-500" : "text-foreground/20"}`}
+						/>
+					))}
+					<span className="ml-1 text-muted-foreground text-xs">
+						{props.rating}
+					</span>
+				</div>
+				<p className="mb-4 line-clamp-2 font-story text-paper-charcoal text-sm dark:text-paper-vanilla">
+					{props.content.substring(0, 200)}...
+				</p>
+			</CardContent>
+			<CardFooter className="mt-auto justify-end">
+				<Button size="sm" variant="ghost" asChild={true} className={"group"}>
+					<Link href={siteContent.links.story.href.replace("{id}", props.id)}>
+						Read
+						<ArrowRight className="ml-1 h-4 w-4 transition-all group-hover:ml-1.5" />
+					</Link>
+				</Button>
+			</CardFooter>
+		</Card>
+	);
+};

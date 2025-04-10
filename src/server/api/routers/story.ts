@@ -176,22 +176,21 @@ export const storyRouter = createTRPCRouter({
 				limit: z.number().min(1).max(100).default(10),
 				genre: z.string().optional(),
 				search: z.string().optional(),
-				isPublic: z.boolean().optional(),
+				publicOnly: z.boolean().optional(),
 				sortBy: z
 					.enum(["newest", "highestRated", "mostRead"])
 					.default("newest"),
 			}),
 		)
 		.query(async ({ input }) => {
-			const { page, limit, genre, search, isPublic, sortBy } = input;
+			const { page, limit, genre, search, publicOnly, sortBy } = input;
 			const offset = (page - 1) * limit;
 
 			try {
 				const whereClauses = [];
 
 				if (genre) whereClauses.push(eq(stories.genre, genre));
-				if (isPublic !== undefined)
-					whereClauses.push(eq(stories.isPublic, isPublic));
+				if (publicOnly) whereClauses.push(eq(stories.isPublic, publicOnly));
 				if (search)
 					whereClauses.push(
 						or(

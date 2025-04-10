@@ -19,7 +19,7 @@ const HeaderAuthButtons = ({ user }: { user: Session["user"] | null }) => {
 						>
 							<div
 								className={
-									"flex size-9 items-center justify-center rounded-full border bg-secondary"
+									"flex size-9 items-center justify-center rounded-full border bg-secondary uppercase"
 								}
 							>
 								{user.name?.substring(0, 2)}

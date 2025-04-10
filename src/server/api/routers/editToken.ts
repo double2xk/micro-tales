@@ -1,5 +1,5 @@
 import {db} from "@/server/db";
-import {editAccessTokens, stories} from "@/server/db/schema";
+import {editAccessTokens, stories, StoryGenre} from "@/server/db/schema";
 import {generateEditToken} from "@/utils/generateToken";
 import {TRPCError} from "@trpc/server";
 import {addHours} from "date-fns";
@@ -99,7 +99,7 @@ export const editTokenRouter = createTRPCRouter({
 				token: z.string(),
 				title: z.string(),
 				content: z.string(),
-				genre: z.string(),
+				genre: z.nativeEnum(StoryGenre),
 				isPublic: z.boolean(),
 			}),
 		)

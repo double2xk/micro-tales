@@ -8,6 +8,7 @@ import {Input} from "@/components/ui/input";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
 import {Switch} from "@/components/ui/switch";
 import {Textarea} from "@/components/ui/textarea";
+import {StoryGenre} from "@/server/db/schema";
 import {zodResolver} from "@hookform/resolvers/zod";
 import {InfoIcon} from "lucide-react";
 import {useSession} from "next-auth/react";
@@ -21,7 +22,7 @@ const submitStoryFormSchema = z
 			.string()
 			.min(3, { message: "Title must be at least 3 characters" })
 			.max(100, { message: "Title must be less than 100 characters" }),
-		genre: z.string().min(3, { message: "Please select a genre" }),
+		genre: z.nativeEnum(StoryGenre).or(z.literal("")),
 		content: z
 			.string()
 			.min(10, { message: "Story must be at least 10 characters" })
@@ -137,12 +138,11 @@ const SubmitStoryForm = (props: Props) => {
 										</SelectTrigger>
 									</FormControl>
 									<SelectContent>
-										<SelectItem value="fable">Fable</SelectItem>
-										<SelectItem value="spooky">Spooky</SelectItem>
-										<SelectItem value="romance">Romance</SelectItem>
-										<SelectItem value="sci-fi">Sci-Fi</SelectItem>
-										<SelectItem value="mystery">Mystery</SelectItem>
-										<SelectItem value="misc">Misc</SelectItem>
+										{Object.entries(StoryGenre).map(([key, value]) => (
+											<SelectItem key={value} value={value}>
+												{key}
+											</SelectItem>
+										))}
 									</SelectContent>
 								</Select>
 								<FormMessage />
