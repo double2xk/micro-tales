@@ -1,29 +1,53 @@
 "use client";
 
-import SubmitStoryForm, {type SubmitStoryFormValues} from "@/components/forms/submit-story-form";
+import SubmitStoryForm, {type SubmitStoryFormValues,} from "@/components/forms/submit-story-form";
 import {Button} from "@/components/ui/button";
 import {Card, CardFooter} from "@/components/ui/card";
 import BackToStories from "@/components/utils/back-to-stories";
-import {cn, generateSecretCode} from "@/lib/utils";
+import {cn} from "@/lib/utils";
+import {api} from "@/trpc/react";
 import {siteContent} from "@/utils/site-content";
+import {useSession} from "next-auth/react";
 import Link from "next/link";
-import {useEffect, useState} from "react";
+import {useState} from "react";
+import {toast} from "sonner";
 
 export default function SubmitPage() {
+	const session = useSession();
 	const [submitted, setSubmitted] = useState(false);
-	const [securityCode, setSecurityCode] = useState("");
+	const [secret, setSecret] = useState("");
 	const [isGuest, setIsGuest] = useState(false);
 
-	// Generate a random security code on component mount
-	useEffect(() => {
-		setSecurityCode(generateSecretCode());
-	}, []);
+	const submitAction = api.story.createStory.useMutation({
+		mutationKey: ["createStory"],
+		onSuccess: (story) => {
+			if (story?.id) {
+				setSubmitted(true);
+			} else {
+				toast.error("Error submitting story");
+			}
+		},
+	});
+
+	const submitGuestAction = api.story.createGuestStory.useMutation({
+		mutationKey: ["createGuestStory"],
+		onSuccess: (data) => {
+			if (data.secret) {
+				setSecret(data.secret);
+				setSubmitted(true);
+			} else {
+				toast.error("Error generating security code");
+			}
+		},
+	});
 
 	function onSubmit(values: SubmitStoryFormValues) {
-		// This would connect to your story submission API in a real implementation
-		console.log({ ...values, securityCode });
 		setIsGuest(values.isGuest);
-		setSubmitted(true);
+		if (values.isGuest) {
+			submitGuestAction.mutate({ ...values });
+		} else {
+			submitAction.mutate({ ...values });
+		}
 	}
 
 	return (
@@ -64,16 +88,30 @@ export default function SubmitPage() {
 						Story Submitted Successfully!
 					</h2>
 					<p className="px-4 text-muted-foreground">
-						{isGuest
-							? "Your story has been submitted as a guest. Save your security code to edit your story later."
-							: "Your story has been submitted and will be reviewed by our team."}
+						{isGuest ? (
+							"Your story has been submitted as a guest. Save your security code to edit your story later."
+						) : (
+							<span>
+								Your story has been submitted. You can view or edit it in your{" "}
+								<Link
+									className={"underline"}
+									href={siteContent.links.author.href.replace(
+										"{id}",
+										session.data?.user?.id || "",
+									)}
+								>
+									profile
+								</Link>
+								.
+							</span>
+						)}
 					</p>
 
 					{isGuest && (
 						<div className="mx-auto max-w-sm rounded-lg bg-purple-50 p-4 dark:bg-purple-900/20">
 							<h3 className="mb-2 font-medium">Your Security Code</h3>
 							<div className="rounded-md bg-white p-3 text-center font-mono text-lg dark:bg-gray-900">
-								{securityCode}
+								{secret}
 							</div>
 							<p className="mt-2 text-muted-foreground text-xs">
 								Keep this code safe. You'll need it to edit your story.
@@ -92,7 +130,6 @@ export default function SubmitPage() {
 							className="w-full sm:w-auto"
 							onClick={() => {
 								setSubmitted(false);
-								setSecurityCode(generateSecretCode());
 							}}
 						>
 							Submit Another Story

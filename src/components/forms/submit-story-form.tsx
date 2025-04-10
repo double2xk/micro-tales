@@ -10,6 +10,7 @@ import {Switch} from "@/components/ui/switch";
 import {Textarea} from "@/components/ui/textarea";
 import {zodResolver} from "@hookform/resolvers/zod";
 import {InfoIcon} from "lucide-react";
+import {useSession} from "next-auth/react";
 import {useEffect, useState} from "react";
 import {useForm} from "react-hook-form";
 import * as z from "zod";
@@ -51,9 +52,11 @@ export type SubmitStoryFormValues = z.infer<typeof submitStoryFormSchema>;
 interface Props {
 	onSubmit: (data: SubmitStoryFormValues) => void;
 	defaultValues?: SubmitStoryFormValues;
+	isLoading?: boolean;
 }
 
 const SubmitStoryForm = (props: Props) => {
+	const session = useSession();
 	const [wordCount, setWordCount] = useState(0);
 
 	const form = useForm<SubmitStoryFormValues>({
@@ -109,6 +112,7 @@ const SubmitStoryForm = (props: Props) => {
 										placeholder="Enter a captivating title"
 										className="rounded-lg"
 										{...field}
+										disabled={props.isLoading}
 									/>
 								</FormControl>
 								<FormMessage />
@@ -125,6 +129,7 @@ const SubmitStoryForm = (props: Props) => {
 								<Select
 									onValueChange={field.onChange}
 									defaultValue={field.value}
+									disabled={props.isLoading}
 								>
 									<FormControl>
 										<SelectTrigger className="w-full max-w-[10rem]">
@@ -163,6 +168,7 @@ const SubmitStoryForm = (props: Props) => {
 										placeholder="Write your story here (max 500 words)"
 										className="min-h-[200px] font-serif"
 										{...field}
+										disabled={props.isLoading}
 									/>
 								</FormControl>
 								<FormMessage />
@@ -185,33 +191,35 @@ const SubmitStoryForm = (props: Props) => {
 									<Switch
 										checked={field.value}
 										onCheckedChange={field.onChange}
+										disabled={props.isLoading}
 									/>
 								</FormControl>
 							</FormItem>
 						)}
 					/>
-
-					<FormField
-						control={form.control}
-						name="isGuest"
-						render={({ field }) => (
-							<FormItem className="flex flex-row items-start gap-3">
-								<FormControl>
-									<Checkbox
-										checked={field.value}
-										onCheckedChange={field.onChange}
-									/>
-								</FormControl>
-								<div className="space-y-1 leading-none">
-									<FormLabel>Submit as guest</FormLabel>
-									<FormDescription>
-										Submit without creating an account
-									</FormDescription>
-								</div>
-							</FormItem>
-						)}
-					/>
-
+					{!session.data?.user?.id && (
+						<FormField
+							control={form.control}
+							name="isGuest"
+							render={({ field }) => (
+								<FormItem className="flex flex-row items-start gap-3">
+									<FormControl>
+										<Checkbox
+											checked={field.value}
+											onCheckedChange={field.onChange}
+											disabled={props.isLoading}
+										/>
+									</FormControl>
+									<div className="space-y-1 leading-none">
+										<FormLabel>Submit as guest</FormLabel>
+										<FormDescription>
+											Submit without creating an account
+										</FormDescription>
+									</div>
+								</FormItem>
+							)}
+						/>
+					)}
 					{isGuest && (
 						<FormField
 							control={form.control}
@@ -225,6 +233,7 @@ const SubmitStoryForm = (props: Props) => {
 											placeholder="your@email.com"
 											className="rounded-lg"
 											{...field}
+											disabled={props.isLoading}
 										/>
 									</FormControl>
 									<FormDescription>
@@ -235,8 +244,13 @@ const SubmitStoryForm = (props: Props) => {
 							)}
 						/>
 					)}
-					<Button type="submit" size={"lg"} className="w-full">
-						Submit Story
+					<Button
+						type="submit"
+						size={"lg"}
+						className="w-full"
+						disabled={props.isLoading}
+					>
+						{props.isLoading ? "Submitting..." : "Submit Story"}
 					</Button>
 				</form>
 			</Form>
