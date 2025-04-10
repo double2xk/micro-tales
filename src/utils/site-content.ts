@@ -11,17 +11,21 @@ export const siteContent = {
 			href: "/stories/{id}",
 			label: "Stories",
 		},
+		submit: {
+			href: "/stories/submit",
+			label: "Submit",
+		},
 		claimStory: {
 			href: "/stories/claim",
 			label: "Claim Story",
 		},
+		editStory: {
+			href: "/stories/{id}/edit",
+			label: "Edit Story",
+		},
 		author: {
 			href: "/author/{id}",
 			label: "Author",
-		},
-		submit: {
-			href: "/submit",
-			label: "Submit",
 		},
 		signup: {
 			href: "/signup",

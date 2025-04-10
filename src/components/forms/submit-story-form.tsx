@@ -50,6 +50,7 @@ export type SubmitStoryFormValues = z.infer<typeof submitStoryFormSchema>;
 
 interface Props {
 	onSubmit: (data: SubmitStoryFormValues) => void;
+	defaultValues?: SubmitStoryFormValues;
 }
 
 const SubmitStoryForm = (props: Props) => {
@@ -64,6 +65,7 @@ const SubmitStoryForm = (props: Props) => {
 			isPublic: true,
 			isGuest: false,
 			email: "",
+			...props.defaultValues,
 		},
 	});
 
