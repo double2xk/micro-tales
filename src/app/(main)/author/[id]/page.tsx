@@ -1,12 +1,15 @@
 import {Avatar, AvatarFallback} from "@/components/ui/avatar";
 import {Badge} from "@/components/ui/badge";
 import {Button} from "@/components/ui/button";
-import {Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle,} from "@/components/ui/card";
+import {Card, CardContent, CardDescription, CardHeader, CardTitle,} from "@/components/ui/card";
 import {auth} from "@/server/auth";
+import type {Story} from "@/server/db/schema";
 import {api} from "@/trpc/server";
+import {getGenreColorClassName} from "@/utils/colors";
 import {siteContent} from "@/utils/site-content";
+import {capitaliseFirstLetter} from "@/utils/string";
 import {format} from "date-fns/format";
-import {ArrowLeft, Calendar, Edit, Eye, EyeOff, PencilIcon, PlusIcon, Star, Trash2,} from "lucide-react";
+import {ArrowLeft, Calendar, Edit, Eye, EyeOff, PlusIcon, Star, Trash2,} from "lucide-react";
 import Link from "next/link";
 
 type Props = {
@@ -81,14 +84,6 @@ export default async function ProfilePage(props: Props) {
 								</div>
 							</div>
 						</CardContent>
-						{isMe && (
-							<CardFooter>
-								<Button className="w-full">
-									<PencilIcon />
-									Edit Profile
-								</Button>
-							</CardFooter>
-						)}
 					</Card>
 				</div>
 
@@ -119,74 +114,74 @@ export default async function ProfilePage(props: Props) {
 							</Card>
 						) : (
 							stories.map((story) => (
-								<div
-									key={story.id}
-									className="flex flex-col items-start justify-between rounded-lg border p-4 sm:flex-row sm:items-center"
-								>
-									<div className="mb-2 sm:mb-0">
-										<div className="flex items-center gap-2">
-											<h3 className="font-medium">{story.title}</h3>
-											{!story.isPublic && (
-												<Badge variant="outline" className="text-xs">
-													Draft
-												</Badge>
-											)}
-										</div>
-										<div className="mt-2 flex items-center gap-3 text-muted-foreground text-sm">
-											<Badge variant="secondary">{story.genre}</Badge>
-											<span>
-												{format(
-													new Date(story.createdAt || ""),
-													"MMMM dd, yyyy",
-												)}
-											</span>
-											<div className="flex items-center">
-												<span className="mr-1">{story.rating}</span>
-												<Star className="h-3 w-3 fill-yellow-500 text-yellow-500" />
-											</div>
-											<div className="flex items-center">
-												{story.isPublic ? (
-													<Eye className="mr-1 h-3 w-3" />
-												) : (
-													<EyeOff className="mr-1 h-3 w-3" />
-												)}
-												<span>{story.isPublic ? "Public" : "Private"}</span>
-											</div>
-										</div>
-									</div>
-									<div className="flex gap-2">
-										<Button variant="outline" size="sm" asChild={true}>
-											<Link
-												href={siteContent.links.story.href.replace(
-													"{id}",
-													story.id,
-												)}
-											>
-												View
-											</Link>
-										</Button>
-										{isMe && (
-											<>
-												<Button variant="outline" size="sm">
-													<Edit className="h-3 w-3" />
-													Edit
-												</Button>
-												<Button
-													variant="outline"
-													size="sm"
-													className={"!text-destructive"}
-												>
-													<Trash2 className="h-3 w-3" />
-													Delete
-												</Button>
-											</>
-										)}
-									</div>
-								</div>
+								<StoryCard key={story.id} isMe={isMe} {...story} />
 							))
 						)}
 					</div>
 				</div>
+			</div>
+		</div>
+	);
+}
+
+function StoryCard(
+	props: Story & {
+		onDelete?: () => void;
+		isMe: boolean;
+		author: { name: string };
+	},
+) {
+	const { id, title, genre, createdAt, rating, isPublic, isMe, onDelete } =
+		props;
+	return (
+		<div className="flex flex-col items-start justify-between rounded-lg border p-4 sm:flex-row sm:items-center">
+			<div className="mb-2 sm:mb-0">
+				<div className="flex items-center gap-2">
+					<h3 className="font-medium">{title}</h3>
+				</div>
+				<div className="mt-2 flex items-center gap-3 text-muted-foreground text-sm">
+					<Badge variant="secondary" className={getGenreColorClassName(genre)}>
+						{capitaliseFirstLetter(genre)}
+					</Badge>
+					<span>{format(new Date(createdAt || ""), "MMMM dd, yyyy")}</span>
+					<div className="flex items-center">
+						<span className="mr-1">{rating}</span>
+						<Star className="h-3 w-3 fill-yellow-500 text-yellow-500" />
+					</div>
+					<div className="flex items-center">
+						{isPublic ? (
+							<Eye className="mr-1 h-3 w-3" />
+						) : (
+							<EyeOff className="mr-1 h-3 w-3" />
+						)}
+						<span>{isPublic ? "Public" : "Private"}</span>
+					</div>
+				</div>
+			</div>
+			<div className="flex gap-2">
+				<Button variant="secondary" size="sm" asChild={true}>
+					<Link href={siteContent.links.story.href.replace("{id}", id)}>
+						<Eye />
+						View
+					</Link>
+				</Button>
+				{isMe && (
+					<>
+						<Button variant="secondary" size="sm">
+							<Edit className="h-3 w-3" />
+							Edit
+						</Button>
+						<Button
+							variant="secondary"
+							size="sm"
+							className={"!text-destructive"}
+							onClick={onDelete}
+						>
+							<Trash2 className="h-3 w-3" />
+							Delete
+						</Button>
+					</>
+				)}
 			</div>
 		</div>
 	);

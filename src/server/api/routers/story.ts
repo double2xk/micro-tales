@@ -98,7 +98,6 @@ export const storyRouter = createTRPCRouter({
 				});
 			}
 		}),
-
 	getStoryById: publicProcedure
 		.input(z.object({ id: z.string().uuid() }))
 		.query(async ({ input }) => {
