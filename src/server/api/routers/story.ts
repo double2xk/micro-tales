@@ -173,7 +173,13 @@ export const storyRouter = createTRPCRouter({
 	getFeaturedStory: publicProcedure.query(async () => {
 		try {
 			const result = await db.query.stories.findFirst({
-				where: eq(stories.isPublic, true),
+				where: and(eq(stories.isPublic, true), eq(stories.isGuest, false)),
+				with: {
+					author: {
+						// @ts-ignore
+						name: true,
+					},
+				},
 				orderBy: desc(stories.createdAt),
 			});
 

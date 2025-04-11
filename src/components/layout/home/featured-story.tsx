@@ -1,54 +1,18 @@
 import {Badge} from "@/components/ui/badge";
 import {Button} from "@/components/ui/button";
 import {Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle} from "@/components/ui/card";
-import {ArrowRight, Star} from "lucide-react";
+import {RatingStars} from "@/components/utils/rating-stars";
+import {cn} from "@/lib/utils";
+import type {Story} from "@/server/db/schema";
+import {api} from "@/trpc/server";
+import {getGenreColorClassName} from "@/utils/colors";
+import {siteContent} from "@/utils/site-content";
+import {capitaliseFirstLetter} from "@/utils/string";
+import {ArrowRight} from "lucide-react";
 import Link from "next/link";
 
-const FeatueredStoryCard = () => {
-	return (
-		<Card className="mx-auto max-w-3xl px-3">
-			<CardHeader>
-				<CardTitle className={"flex justify-between font-serif text-2xl"}>
-					The Last Light
-					<div className="flex items-center">
-						{[1, 2, 3, 4, 5].map((star) => (
-							<Star
-								key={star}
-								className={`h-4 w-4 ${star <= 4 ? "fill-yellow-500 text-yellow-500" : "text-foreground/20"}`}
-							/>
-						))}
-					</div>
-				</CardTitle>
-				<CardDescription>
-					<span className="text-muted-foreground text-sm">
-						by Sarah Johnson
-					</span>
-					<Badge variant="secondary" className="rounded-full">
-						Sci-Fi
-					</Badge>
-				</CardDescription>
-			</CardHeader>
-			<CardContent>
-				<p className="mb-4 font-serif text-lg">
-					The last light flickered in the distance. She had been walking for
-					days, following its persistent glow across the barren landscape. As
-					she drew closer, the truth became clear: it wasn't a rescue beacon,
-					but...
-				</p>
-			</CardContent>
-			<CardFooter className={"justify-end"}>
-				<Button variant="ghost" className="group" asChild={true}>
-					<Link href="/story/1">
-						Read More
-						<ArrowRight className="ml-2 h-4 w-4 transition-all group-hover:ml-3" />
-					</Link>
-				</Button>
-			</CardFooter>
-		</Card>
-	);
-};
-
-const FeaturedStory = () => {
+export default async function FeaturedStory() {
+	const featuredStory = await api.story.getFeaturedStory();
 	return (
 		<section id={"featured-story"}>
 			<div className="container-centered">
@@ -62,10 +26,43 @@ const FeaturedStory = () => {
 						</p>
 					</div>
 				</div>
-				<FeatueredStoryCard />
+				<FeaturedStoryCard {...featuredStory} />
 			</div>
 		</section>
 	);
-};
+}
 
-export default FeaturedStory;
+function FeaturedStoryCard(props: Story & { author?: { name: string } }) {
+	const { title, rating, content, id, genre, author } = props;
+	return (
+		<Card className="mx-auto max-w-3xl px-3">
+			<CardHeader>
+				<CardTitle className={"flex justify-between font-serif text-2xl"}>
+					{title}
+					<RatingStars rating={rating ?? 0} />
+				</CardTitle>
+				<CardDescription>
+					<span className="text-muted-foreground text-sm">
+						by {author?.name}
+					</span>{" "}
+					<Badge className={cn("rounded-full", getGenreColorClassName(genre))}>
+						{capitaliseFirstLetter(genre)}
+					</Badge>
+				</CardDescription>
+			</CardHeader>
+			<CardContent>
+				<p className="mb-4 font-serif text-lg">
+					{(content || "").substring(0, 400)}...
+				</p>
+			</CardContent>
+			<CardFooter className={"justify-end"}>
+				<Button variant="ghost" className="group" asChild={true}>
+					<Link href={siteContent.links.story.href.replace("{id}", id)}>
+						Read More
+						<ArrowRight className="ml-2 h-4 w-4 transition-all group-hover:ml-3" />
+					</Link>
+				</Button>
+			</CardFooter>
+		</Card>
+	);
+}

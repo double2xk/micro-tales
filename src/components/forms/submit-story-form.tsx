@@ -3,9 +3,10 @@ import {Alert, AlertDescription, AlertTitle} from "@/components/ui/alert";
 import {Button} from "@/components/ui/button";
 import {Card} from "@/components/ui/card";
 import {Checkbox} from "@/components/ui/checkbox";
-import {Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form";
+import {Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage,} from "@/components/ui/form";
 import {Input} from "@/components/ui/input";
-import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
+import {Popover, PopoverContent, PopoverTrigger,} from "@/components/ui/popover";
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue,} from "@/components/ui/select";
 import {Skeleton} from "@/components/ui/skeleton";
 import {Switch} from "@/components/ui/switch";
 import {Textarea} from "@/components/ui/textarea";
@@ -187,8 +188,24 @@ const SubmitStoryForm = (props: Props) => {
 							<FormItem className="flex flex-row items-center justify-between rounded-lg bg-muted/80 p-4">
 								<div className="space-y-0.5">
 									<FormLabel className="text-base">Story Visibility</FormLabel>
-									<FormDescription>
+									<FormDescription className={"inline-flex items-center"}>
 										Make your story visible to all users
+										<Popover>
+											<PopoverTrigger className={"ml-1.5 cursor-pointer"}>
+												<InfoIcon className={"size-4 text-muted-foreground"} />
+											</PopoverTrigger>
+											<PopoverContent
+												align={"center"}
+												side={"top"}
+												className={
+													"w-max whitespace-nowrap bg-primary text-center"
+												}
+											>
+												<p className={"text-primary-foreground text-xs"}>
+													Private stories are hidden from guests.
+												</p>
+											</PopoverContent>
+										</Popover>
 									</FormDescription>
 								</div>
 								<FormControl>

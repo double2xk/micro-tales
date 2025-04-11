@@ -8,7 +8,12 @@ const FocusedLayout = ({ children }: { children: React.ReactNode }) => {
 			<div>
 				<header className="w-full border-b">
 					<div className="container-centered py-5">
-						<Link href="/" className={"flex items-center gap-2"}>
+						<Link
+							href="/"
+							className={
+								"flex w-max items-center gap-2 transition-opacity hover:opacity-80"
+							}
+						>
 							<AlbumIcon />
 							<span className="font-bold text-xl">MicroTales</span>
 						</Link>
