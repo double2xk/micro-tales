@@ -13,9 +13,10 @@ import {useRouter} from "next/navigation";
 import {useState} from "react"
 import {useForm} from "react-hook-form"
 import * as z from "zod"
+import {api} from "@/trpc/react";
 
 const formSchema = z.object({
-	securityCode: z
+	secret: z
 		.string()
 		.min(1, { message: "Security code is required" })
 		.regex(/^TALE-\d{4}-[A-Z]{4}$/, {
@@ -31,33 +32,36 @@ export default function ClaimStoryPage() {
 	const form = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
 		defaultValues: {
-			securityCode: "",
+			secret: "",
 			email: "",
 		},
 	});
 
-	function onSubmit(values: z.infer<typeof formSchema>) {
-		// This would connect to your API to verify the security code and email
-		console.log(values);
-
-		// Simulate API response
-		setTimeout(() => {
-			// For demo purposes, we'll consider TALE-1234-ABCD as a valid code
-			if (values.securityCode === "TALE-1234-ABCD") {
+	const claimStoryAction = api.editToken.claimStory.useMutation({
+		mutationKey: ["claimStory"],
+		onSuccess: (data) => {
+			if (data.token) {
 				setStatus("success");
 				setTimeout(() => {
 					router.push(
-						`${siteContent.links.editStory.href.replace("{id}", "1234")}?token=someToken`,
+						`${siteContent.links.editStory.href.replace("{id}", data.storyId)}?token=${data.token}`,
 					);
 				}, 2000);
 			} else {
 				setStatus("error");
 			}
-		}, 1000);
+		},
+		onError: () => {
+			setStatus("error");
+		},
+	});
+
+	function onSubmit(values: z.infer<typeof formSchema>) {
+		void claimStoryAction.mutateAsync(values);
 	}
 
 	return (
-		<div className="mx-auto w-full max-w-md">
+		<div className="mx-auto w-full max-w-md py-12">
 			<Card>
 				<CardHeader className="space-y-2">
 					<CardTitle className="font-serif text-3xl">
@@ -95,7 +99,7 @@ export default function ClaimStoryPage() {
 						<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
 							<FormField
 								control={form.control}
-								name="securityCode"
+								name="secret"
 								render={({ field }) => (
 									<FormItem>
 										<FormLabel>Security Code</FormLabel>

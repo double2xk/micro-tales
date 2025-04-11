@@ -1,3 +1,4 @@
+import {generateSecretCode} from "@/lib/utils";
 import {db} from "@/server/db";
 import {editAccessTokens, stories, StoryGenre} from "@/server/db/schema";
 import {generateEditToken} from "@/utils/generateToken";
@@ -35,7 +36,7 @@ export const editTokenRouter = createTRPCRouter({
 
 				// Generate a new edit token
 				const token = generateEditToken();
-				const expiresAt = addHours(new Date(), 2); // Token expires in 1 hour
+				const expiresAt = addHours(new Date(), 2); // Token expires in 2 hours
 
 				// Insert the token into the database
 				await db.insert(editAccessTokens).values({
@@ -122,11 +123,11 @@ export const editTokenRouter = createTRPCRouter({
 				const wordCount = input.content.trim().split(/\s+/).length;
 				const readingTime = Math.ceil(wordCount / 200);
 
-				// Generate a new secret code for the story
-				const newSecret = generateEditToken(); // Refresh secret
+				// Generate a new secret code for the story claim
+				const newSecret = generateSecretCode(); // Refresh secret
 
 				// Update the story with the new details
-				await db
+				const [story] = await db
 					.update(stories)
 					.set({
 						title: input.title,
@@ -137,14 +138,15 @@ export const editTokenRouter = createTRPCRouter({
 						readingTime,
 						secretCode: newSecret,
 					})
-					.where(eq(stories.id, result.storyId));
+					.where(eq(stories.id, result.storyId))
+					.returning();
 
 				// Clean up the edit token
 				await db
 					.delete(editAccessTokens)
 					.where(eq(editAccessTokens.token, input.token));
 
-				return { success: true };
+				return { story, secret: newSecret };
 			} catch (error) {
 				console.error("Error editing story by token:", error);
 				throw new TRPCError({

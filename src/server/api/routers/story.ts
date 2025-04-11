@@ -62,7 +62,7 @@ export const storyRouter = createTRPCRouter({
 				title: z.string().min(1, "Title is required"),
 				content: z.string().min(1, "Content is required"),
 				genre: z.nativeEnum(StoryGenre),
-				isPublic: z.boolean(),
+				isPublic: z.boolean().default(true),
 			}),
 		)
 		.mutation(async ({ input }) => {

@@ -108,7 +108,7 @@ export default async function BrowsePage(props: Props) {
 							<PopoverContent
 								align={"center"}
 								side={"top"}
-								className={"whitespace-nowrap bg-primary"}
+								className={"w-max whitespace-nowrap bg-primary"}
 							>
 								<p className="text-primary-foreground text-xs">
 									Only logged in users can see private stories.
@@ -163,7 +163,7 @@ const StoryCard = (props: Story & { author: { name: string } }) => {
 	return (
 		<Card className={"min-h-[14.5rem] gap-1.5"}>
 			<CardHeader>
-				<div className="flex items-start justify-between">
+				<div className="flex items-start justify-between gap-2">
 					<h3 className="font-bold font-serif text-xl">{props.title}</h3>
 					<Badge
 						variant="default"
@@ -172,7 +172,7 @@ const StoryCard = (props: Story & { author: { name: string } }) => {
 						{capitaliseFirstLetter(props.genre)}
 					</Badge>
 				</div>
-				<CardDescription>by {props?.author?.name}</CardDescription>
+				<CardDescription>by {props?.author?.name ?? "Guest"}</CardDescription>
 			</CardHeader>
 			<CardContent className={"space-y-2.5"}>
 				<div className="flex items-center">

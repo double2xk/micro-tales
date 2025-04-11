@@ -1,14 +1,16 @@
 import {Badge} from "@/components/ui/badge";
 import {Button} from "@/components/ui/button";
+import {Popover, PopoverContent, PopoverTrigger,} from "@/components/ui/popover";
 import BackToStories from "@/components/utils/back-to-stories";
 import {RatingStarsWithAction} from "@/components/utils/rating-stars";
+import {cn} from "@/lib/utils";
 import {auth} from "@/server/auth";
 import {api} from "@/trpc/server";
 import {getGenreColorClassName} from "@/utils/colors";
 import {siteContent} from "@/utils/site-content";
 import {capitaliseFirstLetter} from "@/utils/string";
 import {format} from "date-fns/format";
-import {ArrowLeft, Calendar, Clock, Share2} from "lucide-react";
+import {ArrowLeft, Calendar, Clock, InfoIcon, Share2} from "lucide-react";
 import Link from "next/link";
 
 type Props = {
@@ -67,16 +69,19 @@ export default async function StoryPage(props: Props) {
 				<div className="mb-6 flex flex-wrap items-center gap-4 text-paper-gray text-sm">
 					<div className="flex items-center gap-2">
 						<div className="flex size-8 items-center justify-center rounded-full border bg-background uppercase">
-							{story?.author?.name?.substring(0, 2)}
+							{(story?.author?.name ?? "Guest").substring(0, 2)}
 						</div>
 						<Link
 							href={siteContent.links.author.href.replace(
 								"{id}",
 								story?.authorId || "",
 							)}
-							className="font-medium hover:underline"
+							className={cn(
+								"font-medium hover:underline",
+								!story.authorId && "pointer-events-none cursor-not-allowed",
+							)}
 						>
-							{story?.author?.name}
+							{story?.author?.name ?? "Guest"}
 						</Link>
 					</div>
 					<Badge
@@ -117,6 +122,31 @@ export default async function StoryPage(props: Props) {
 						<RatingStarsWithAction storyId={id} rating={myRating} />
 					</div>
 					<div className="flex gap-2">
+						{!story.authorId && (
+							<>
+								<Popover>
+									<PopoverTrigger className={"cursor-pointer"}>
+										<InfoIcon className={"size-5 text-muted-foreground"} />
+									</PopoverTrigger>
+									<PopoverContent
+										align={"center"}
+										side={"top"}
+										className={"w-max whitespace-nowrap bg-primary text-center"}
+									>
+										<p className="text-primary-foreground text-xs">
+											Story belongs to you?
+											<br />
+											Claim it to edit and manage it.
+										</p>
+									</PopoverContent>
+								</Popover>
+								<Button asChild={true} size="sm">
+									<Link href={siteContent.links.claimStory.href}>
+										Edit Story
+									</Link>
+								</Button>
+							</>
+						)}
 						<Button variant="outline" size="sm">
 							<Share2 className="h-4 w-4" />
 							Share

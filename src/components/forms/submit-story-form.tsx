@@ -6,6 +6,7 @@ import {Checkbox} from "@/components/ui/checkbox";
 import {Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form";
 import {Input} from "@/components/ui/input";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
+import {Skeleton} from "@/components/ui/skeleton";
 import {Switch} from "@/components/ui/switch";
 import {Textarea} from "@/components/ui/textarea";
 import {StoryGenre} from "@/server/db/schema";
@@ -54,6 +55,7 @@ interface Props {
 	onSubmit: (data: SubmitStoryFormValues) => void;
 	defaultValues?: SubmitStoryFormValues;
 	isLoading?: boolean;
+	disabledFields?: Array<keyof SubmitStoryFormValues>;
 }
 
 const SubmitStoryForm = (props: Props) => {
@@ -75,6 +77,8 @@ const SubmitStoryForm = (props: Props) => {
 
 	const content = form.watch("content");
 	const isGuest = form.watch("isGuest");
+	const isDisabled = (field: keyof SubmitStoryFormValues) =>
+		props.disabledFields?.includes(field);
 
 	// Update word count when content changes
 	useEffect(() => {
@@ -85,7 +89,7 @@ const SubmitStoryForm = (props: Props) => {
 	}, [content]);
 
 	return (
-		<Card className={"p-6"}>
+		<Card className={"fade-in animate-in p-6 duration-500"}>
 			{isGuest && (
 				<Alert className="border-blue-100 border-dashed bg-blue-50/50 dark:border-blue-900 ">
 					<InfoIcon className="!size-4.5 text-blue-600 dark:text-blue-400" />
@@ -113,7 +117,7 @@ const SubmitStoryForm = (props: Props) => {
 										placeholder="Enter a captivating title"
 										className="rounded-lg"
 										{...field}
-										disabled={props.isLoading}
+										disabled={props.isLoading || isDisabled("title")}
 									/>
 								</FormControl>
 								<FormMessage />
@@ -130,7 +134,7 @@ const SubmitStoryForm = (props: Props) => {
 								<Select
 									onValueChange={field.onChange}
 									defaultValue={field.value}
-									disabled={props.isLoading}
+									disabled={props.isLoading || isDisabled("genre")}
 								>
 									<FormControl>
 										<SelectTrigger className="w-full max-w-[10rem]">
@@ -168,7 +172,7 @@ const SubmitStoryForm = (props: Props) => {
 										placeholder="Write your story here (max 500 words)"
 										className="min-h-[200px] font-serif"
 										{...field}
-										disabled={props.isLoading}
+										disabled={props.isLoading || isDisabled("content")}
 									/>
 								</FormControl>
 								<FormMessage />
@@ -191,7 +195,7 @@ const SubmitStoryForm = (props: Props) => {
 									<Switch
 										checked={field.value}
 										onCheckedChange={field.onChange}
-										disabled={props.isLoading}
+										disabled={props.isLoading || isDisabled("isPublic")}
 									/>
 								</FormControl>
 							</FormItem>
@@ -207,7 +211,7 @@ const SubmitStoryForm = (props: Props) => {
 										<Checkbox
 											checked={field.value}
 											onCheckedChange={field.onChange}
-											disabled={props.isLoading}
+											disabled={props.isLoading || isDisabled("isGuest")}
 										/>
 									</FormControl>
 									<div className="space-y-1 leading-none">
@@ -233,11 +237,11 @@ const SubmitStoryForm = (props: Props) => {
 											placeholder="your@email.com"
 											className="rounded-lg"
 											{...field}
-											disabled={props.isLoading}
+											disabled={props.isLoading || isDisabled("email")}
 										/>
 									</FormControl>
 									<FormDescription>
-										We'll use this to let you know when your story is published
+										We'll send you a security code to edit your story later.
 									</FormDescription>
 									<FormMessage />
 								</FormItem>
@@ -254,6 +258,54 @@ const SubmitStoryForm = (props: Props) => {
 					</Button>
 				</form>
 			</Form>
+		</Card>
+	);
+};
+
+export const SubmitStoryFormSkeleton = () => {
+	return (
+		<Card className="space-y-4 p-6">
+			{/* Title Input Skeleton */}
+			<div className="space-y-2">
+				<Skeleton className="h-4 w-32" />
+				<Skeleton className="h-10 w-full rounded-lg" />
+			</div>
+
+			{/* Genre Select Skeleton */}
+			<div className="space-y-2">
+				<Skeleton className="h-4 w-20" />
+				<Skeleton className="h-10 w-40 rounded-lg" />
+			</div>
+
+			{/* Content Textarea Skeleton */}
+			<div className="space-y-2">
+				<div className="flex justify-between">
+					<Skeleton className="h-4 w-24" />
+					<Skeleton className="h-4 w-16" />
+				</div>
+				<Skeleton className="h-32 w-full rounded-lg" />
+			</div>
+
+			{/* Visibility Toggle Skeleton */}
+			<div className="flex items-center justify-between rounded-lg bg-muted/80 p-4">
+				<div className="space-y-1">
+					<Skeleton className="h-4 w-28" />
+					<Skeleton className="h-3 w-48" />
+				</div>
+				<Skeleton className="h-6 w-10 rounded-full" />
+			</div>
+
+			{/* Guest Checkbox Skeleton */}
+			<div className="flex items-start gap-3">
+				<Skeleton className="h-4 w-4 rounded" />
+				<div className="space-y-1">
+					<Skeleton className="h-4 w-28" />
+					<Skeleton className="h-3 w-44" />
+				</div>
+			</div>
+
+			{/* Submit Button Skeleton */}
+			<Skeleton className="h-10 w-full rounded-lg" />
 		</Card>
 	);
 };
