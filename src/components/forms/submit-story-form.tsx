@@ -12,7 +12,7 @@ import {Switch} from "@/components/ui/switch";
 import {Textarea} from "@/components/ui/textarea";
 import {StoryGenre} from "@/server/db/schema";
 import {zodResolver} from "@hookform/resolvers/zod";
-import {InfoIcon} from "lucide-react";
+import {BadgeInfoIcon, InfoIcon} from "lucide-react";
 import {useSession} from "next-auth/react";
 import {useEffect, useState} from "react";
 import {useForm} from "react-hook-form";
@@ -89,11 +89,17 @@ const SubmitStoryForm = (props: Props) => {
 		setWordCount(words);
 	}, [content]);
 
+	useEffect(() => {
+		if (!session.data?.user?.id && isGuest === true) {
+			form.setValue("isPublic", true);
+		}
+	}, [isGuest, session, form]);
+
 	return (
 		<Card className={"fade-in animate-in p-6 duration-500"}>
 			{isGuest && (
-				<Alert className="border-blue-100 border-dashed bg-blue-50/50 dark:border-blue-900 ">
-					<InfoIcon className="!size-4.5 text-blue-600 dark:text-blue-400" />
+				<Alert variant={"info"}>
+					<BadgeInfoIcon className="!size-4.5" />
 					<AlertTitle>Submitting as a guest</AlertTitle>
 					<AlertDescription>
 						You'll receive a security code to edit your story later. Make sure
@@ -212,58 +218,62 @@ const SubmitStoryForm = (props: Props) => {
 									<Switch
 										checked={field.value}
 										onCheckedChange={field.onChange}
-										disabled={props.isLoading || isDisabled("isPublic")}
+										disabled={
+											props.isLoading || isDisabled("isPublic") || isGuest
+										}
 									/>
 								</FormControl>
 							</FormItem>
 						)}
 					/>
 					{!session.data?.user?.id && (
-						<FormField
-							control={form.control}
-							name="isGuest"
-							render={({ field }) => (
-								<FormItem className="flex flex-row items-start gap-3">
-									<FormControl>
-										<Checkbox
-											checked={field.value}
-											onCheckedChange={field.onChange}
-											disabled={props.isLoading || isDisabled("isGuest")}
-										/>
-									</FormControl>
-									<div className="space-y-1 leading-none">
-										<FormLabel>Submit as guest</FormLabel>
-										<FormDescription>
-											Submit without creating an account
-										</FormDescription>
-									</div>
-								</FormItem>
+						<>
+							<FormField
+								control={form.control}
+								name="isGuest"
+								render={({ field }) => (
+									<FormItem className="flex flex-row items-start gap-3">
+										<FormControl>
+											<Checkbox
+												checked={field.value}
+												onCheckedChange={field.onChange}
+												disabled={props.isLoading || isDisabled("isGuest")}
+											/>
+										</FormControl>
+										<div className="space-y-1 leading-none">
+											<FormLabel>Submit as guest</FormLabel>
+											<FormDescription>
+												Submit without creating an account
+											</FormDescription>
+										</div>
+									</FormItem>
+								)}
+							/>
+							{isGuest && (
+								<FormField
+									control={form.control}
+									name="email"
+									render={({ field }) => (
+										<FormItem>
+											<FormLabel>Email (for guest submissions)</FormLabel>
+											<FormControl>
+												<Input
+													type="email"
+													placeholder="your@email.com"
+													className="rounded-lg"
+													{...field}
+													disabled={props.isLoading || isDisabled("email")}
+												/>
+											</FormControl>
+											<FormDescription>
+												We'll send you a security code to edit your story later.
+											</FormDescription>
+											<FormMessage />
+										</FormItem>
+									)}
+								/>
 							)}
-						/>
-					)}
-					{isGuest && (
-						<FormField
-							control={form.control}
-							name="email"
-							render={({ field }) => (
-								<FormItem>
-									<FormLabel>Email (for guest submissions)</FormLabel>
-									<FormControl>
-										<Input
-											type="email"
-											placeholder="your@email.com"
-											className="rounded-lg"
-											{...field}
-											disabled={props.isLoading || isDisabled("email")}
-										/>
-									</FormControl>
-									<FormDescription>
-										We'll send you a security code to edit your story later.
-									</FormDescription>
-									<FormMessage />
-								</FormItem>
-							)}
-						/>
+						</>
 					)}
 					<Button
 						type="submit"

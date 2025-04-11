@@ -19,6 +19,10 @@ export const siteContent = {
 			href: "/stories/claim",
 			label: "Claim Story",
 		},
+		callbackClaim: {
+			href: "/callback/claim",
+			label: "Claim Story Callback",
+		},
 		editStory: {
 			href: "/stories/{id}/edit",
 			label: "Edit Story",

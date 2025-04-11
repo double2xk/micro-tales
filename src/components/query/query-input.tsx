@@ -9,12 +9,14 @@ interface DebouncedInputProps extends ComponentProps<"input"> {
 	queryKey: string;
 	queryValue?: string;
 	debounceMs?: number;
+	resetPage?: boolean;
 }
 
 export function DebouncedInput({
 	queryKey,
 	queryValue = "",
 	debounceMs = 500,
+	resetPage = false,
 	...props
 }: DebouncedInputProps) {
 	const [value, setValue] = useState(queryValue);
@@ -28,6 +30,10 @@ export function DebouncedInput({
 			params.set(queryKey, newValue);
 		} else {
 			params.delete(queryKey);
+		}
+
+		if (resetPage) {
+			params.delete("page");
 		}
 
 		router.push(`?${params.toString()}`);

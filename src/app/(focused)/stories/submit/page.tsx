@@ -1,14 +1,18 @@
 "use client";
 
 import SubmitStoryForm, {type SubmitStoryFormValues,} from "@/components/forms/submit-story-form";
+import StorySubmitted from "@/components/story/story-submitted";
 import BackToStories from "@/components/utils/back-to-stories";
-import type {StoryGenre} from "@/server/db/schema";
 import {api} from "@/trpc/react";
+import {siteContent} from "@/utils/site-content";
+import {useSession} from "next-auth/react";
+import {useRouter} from "next/navigation";
 import {useState} from "react";
 import {toast} from "sonner";
-import StorySubmitted from "@/components/story/story-submitted";
 
 export default function SubmitPage() {
+	const session = useSession();
+	const router = useRouter();
 	const [submitted, setSubmitted] = useState(false);
 	const [secret, setSecret] = useState("");
 	const [isGuest, setIsGuest] = useState(false);
@@ -24,6 +28,20 @@ export default function SubmitPage() {
 		},
 	});
 
+	const submitWithRegisterTokenAction =
+		api.story.createStoryWithRegisterToken.useMutation({
+			mutationKey: ["claimStory"],
+			onSuccess: (data) => {
+				if (data.token) {
+					router.push(
+						`${siteContent.links.signup.href}?storyToken=${data.token}`,
+					);
+				} else {
+					toast.error("Error generating security code");
+				}
+			},
+		});
+
 	const submitGuestAction = api.story.createGuestStory.useMutation({
 		mutationKey: ["createGuestStory"],
 		onSuccess: (data) => {
@@ -37,15 +55,15 @@ export default function SubmitPage() {
 	});
 
 	async function onSubmit(values: SubmitStoryFormValues) {
-		setIsGuest(values.isGuest);
-
 		if (values.isGuest) {
-			submitGuestAction.mutate({
-				...values,
-				genre: values.genre as StoryGenre,
-			});
+			setIsGuest(values.isGuest);
+			submitGuestAction.mutate({ ...values });
 		} else {
-			submitAction.mutate({ ...values, genre: values.genre as StoryGenre });
+			if (!session.data?.user?.id) {
+				submitWithRegisterTokenAction.mutate({ ...values });
+			} else {
+				submitAction.mutate({ ...values });
+			}
 		}
 	}
 
@@ -68,7 +86,14 @@ export default function SubmitPage() {
 					onSubmitAnother={() => setSubmitted(false)}
 				/>
 			) : (
-				<SubmitStoryForm onSubmit={onSubmit} />
+				<SubmitStoryForm
+					onSubmit={onSubmit}
+					isLoading={
+						submitAction.isPending ||
+						submitWithRegisterTokenAction.isPending ||
+						submitGuestAction.isPending
+					}
+				/>
 			)}
 		</div>
 	);

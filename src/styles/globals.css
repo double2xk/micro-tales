@@ -119,6 +119,9 @@
 	body {
 		@apply bg-background text-foreground;
 	}
+	html {
+		scrollbar-width: thin;
+	}
 }
 
 @layer components {

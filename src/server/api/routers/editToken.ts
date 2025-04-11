@@ -155,4 +155,39 @@ export const editTokenRouter = createTRPCRouter({
 				});
 			}
 		}),
+	deleteStoryByToken: publicProcedure
+		.input(z.object({ token: z.string() }))
+		.mutation(async ({ input }) => {
+			try {
+				// Attempt to find the edit access token
+				const result = await db.query.editAccessTokens.findFirst({
+					where: eq(editAccessTokens.token, input.token),
+				});
+
+				// Throw error if the token is invalid or expired
+				if (!result?.storyId) {
+					throw new TRPCError({
+						code: "BAD_REQUEST",
+						message: "Invalid or expired token.",
+					});
+				}
+
+				// Delete the story associated with the token
+				await db.delete(stories).where(eq(stories.id, result.storyId));
+
+				// Clean up the edit token
+				await db
+					.delete(editAccessTokens)
+					.where(eq(editAccessTokens.token, input.token));
+
+				return { success: true };
+			} catch (error) {
+				console.error("Error deleting story by token:", error);
+				return {
+					success: false,
+					message:
+						error?.message ?? "An error occurred while deleting the story.",
+				};
+			}
+		}),
 });

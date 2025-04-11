@@ -19,10 +19,11 @@ const formSchema = z.object({
 	password: z
 		.string()
 		.min(6, { message: "Password must be at least 6 characters" }),
-	// remember: z.boolean().default(false),
 });
 
 export default function LoginPage() {
+	const storyRegisterToken = useSearchParams().get("storyToken");
+
 	const [isLoading, setLoading] = useState(false);
 	const [errorMessage, setErrorMessage] = useState("");
 	const params = useSearchParams();
@@ -33,14 +34,17 @@ export default function LoginPage() {
 		defaultValues: {
 			email: "",
 			password: "",
-			// remember: false,
 		},
 	});
 
 	function onSubmit(values: z.infer<typeof formSchema>) {
 		setLoading(true);
-		// This would connect to your authentication API in a real implementation
-		void signIn("credentials", { ...values, redirectTo: "/" }).catch((err) => {
+		void signIn("credentials", {
+			...values,
+			redirectTo: storyRegisterToken
+				? `${siteContent.links.callbackClaim.href}?storyToken=${storyRegisterToken}`
+				: siteContent.links.authorBase.href,
+		}).catch((err) => {
 			setLoading(false);
 			setErrorMessage(
 				err?.code === "credentials"
@@ -113,22 +117,6 @@ export default function LoginPage() {
 							</FormItem>
 						)}
 					/>
-					{/*<FormField*/}
-					{/*	control={form.control}*/}
-					{/*	name="remember"*/}
-					{/*	render={({ field }) => (*/}
-					{/*		<FormItem className={"flex items-center gap-3 py-0.5"}>*/}
-					{/*			<FormControl>*/}
-					{/*				<Checkbox*/}
-					{/*					checked={field.value}*/}
-					{/*					onCheckedChange={field.onChange}*/}
-					{/*					disabled={isLoading}*/}
-					{/*				/>*/}
-					{/*			</FormControl>*/}
-					{/*			<FormLabel>Remember me</FormLabel>*/}
-					{/*		</FormItem>*/}
-					{/*	)}*/}
-					{/*/>*/}
 					{errorMessage ? (
 						<Alert variant={"destructive"}>
 							<AlertTriangleIcon />

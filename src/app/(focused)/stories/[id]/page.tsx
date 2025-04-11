@@ -1,3 +1,4 @@
+import ShareStoryBtn from "@/components/story/share-story-btn";
 import {Badge} from "@/components/ui/badge";
 import {Button} from "@/components/ui/button";
 import {Popover, PopoverContent, PopoverTrigger,} from "@/components/ui/popover";
@@ -10,7 +11,7 @@ import {getGenreColorClassName} from "@/utils/colors";
 import {siteContent} from "@/utils/site-content";
 import {capitaliseFirstLetter} from "@/utils/string";
 import {format} from "date-fns/format";
-import {ArrowLeft, Calendar, Clock, InfoIcon, Share2} from "lucide-react";
+import {ArrowLeft, BadgeInfoIcon, Calendar, Clock, InfoIcon, LogInIcon, PencilLineIcon} from "lucide-react";
 import Link from "next/link";
 
 type Props = {
@@ -25,12 +26,16 @@ export default async function StoryPage(props: Props) {
 
 	if (!session?.user?.id && !story?.isPublic) {
 		return (
-			<div className="container-centered flex flex-col items-center justify-center gap-3 py-12">
+			<div className="container-centered flex flex-col items-center justify-center gap-3 py-20">
+				<BadgeInfoIcon className={"size-10"} />
 				<h1 className="text-center font-bold text-2xl">
 					You must be signed in to view private stories.
 				</h1>
-				<Button asChild={true}>
-					<Link href={siteContent.links.login.href}>Sign In</Link>
+				<Button asChild={true} size={"lg"} className={"mt-2 min-w-xs"}>
+					<Link href={siteContent.links.login.href}>
+						<LogInIcon />
+						Sign In
+					</Link>
 				</Button>
 			</div>
 		);
@@ -122,6 +127,16 @@ export default async function StoryPage(props: Props) {
 						<RatingStarsWithAction storyId={id} rating={myRating} />
 					</div>
 					<div className="flex gap-2">
+						{story.authorId === session?.user?.id && (
+							<Button asChild={true} size="sm">
+								<Link
+									href={siteContent.links.editStory.href.replace("{id}", id)}
+								>
+									<PencilLineIcon />
+									Edit Story
+								</Link>
+							</Button>
+						)}
 						{!story.authorId && (
 							<>
 								<Popover>
@@ -147,11 +162,7 @@ export default async function StoryPage(props: Props) {
 								</Button>
 							</>
 						)}
-						<Button variant="outline" size="sm">
-							<Share2 className="h-4 w-4" />
-							Share
-						</Button>
-						{/*<Button size="sm">Rate This Story</Button>*/}
+						<ShareStoryBtn storyId={story.id} variant="outline" size="sm" />
 					</div>
 				</div>
 			</div>

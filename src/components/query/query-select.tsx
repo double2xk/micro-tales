@@ -14,6 +14,7 @@ interface QuerySelectProps {
 	defaultValue?: string;
 	debounceMs?: number;
 	placeholder?: string;
+	resetPage?: boolean;
 }
 
 export const QuerySelect: React.FC<QuerySelectProps> = ({
@@ -22,6 +23,7 @@ export const QuerySelect: React.FC<QuerySelectProps> = ({
 	defaultValue = "all",
 	debounceMs = 300,
 	placeholder = "Select...",
+	resetPage = false,
 }) => {
 	const router = useRouter();
 	const searchParams = useSearchParams();
@@ -36,6 +38,10 @@ export const QuerySelect: React.FC<QuerySelectProps> = ({
 			params.set(queryKey, newValue);
 		} else {
 			params.delete(queryKey);
+		}
+
+		if (resetPage) {
+			params.delete("page");
 		}
 
 		router.push(`?${params.toString()}`);

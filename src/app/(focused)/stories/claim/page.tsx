@@ -1,19 +1,20 @@
 "use client";
 
-import {Alert, AlertDescription, AlertTitle} from "@/components/ui/alert"
-import {Button} from "@/components/ui/button"
-import {Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle} from "@/components/ui/card";
-import {Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form"
-import {Input} from "@/components/ui/input"
-import {siteContent} from "@/utils/site-content";
-import {zodResolver} from "@hookform/resolvers/zod"
-import {CheckCircle2, XCircle} from "lucide-react"
-import Link from "next/link"
-import {useRouter} from "next/navigation";
-import {useState} from "react"
-import {useForm} from "react-hook-form"
-import * as z from "zod"
+import {Alert, AlertDescription, AlertTitle} from "@/components/ui/alert";
+import {Button} from "@/components/ui/button";
+import {Card, CardContent, CardFooter,} from "@/components/ui/card";
+import {Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage,} from "@/components/ui/form";
+import {Input} from "@/components/ui/input";
+import BackToStories from "@/components/utils/back-to-stories";
 import {api} from "@/trpc/react";
+import {siteContent} from "@/utils/site-content";
+import {zodResolver} from "@hookform/resolvers/zod";
+import {CheckCircle2, XCircle} from "lucide-react";
+import Link from "next/link";
+import {useRouter, useSearchParams} from "next/navigation";
+import {useState} from "react";
+import {useForm} from "react-hook-form";
+import * as z from "zod";
 
 const formSchema = z.object({
 	secret: z
@@ -28,11 +29,12 @@ const formSchema = z.object({
 export default function ClaimStoryPage() {
 	const router = useRouter();
 	const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
+	const secret = useSearchParams().get("secret");
 
 	const form = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
 		defaultValues: {
-			secret: "",
+			secret: secret ?? "",
 			email: "",
 		},
 	});
@@ -61,20 +63,19 @@ export default function ClaimStoryPage() {
 	}
 
 	return (
-		<div className="mx-auto w-full max-w-md py-12">
-			<Card>
-				<CardHeader className="space-y-2">
-					<CardTitle className="font-serif text-3xl">
-						Claim Your Story
-					</CardTitle>
-					<CardDescription className="text-base text-muted-foreground">
-						Enter your security code and email to edit or manage your guest
-						submission
-					</CardDescription>
-				</CardHeader>
+		<div className={"container-centered max-w-lg py-12"}>
+			<BackToStories />
+			<div className="mb-8">
+				<h1 className="mb-2 font-bold font-serif text-3xl">Claim Your Story</h1>
+				<p className="text-muted-foreground">
+					Enter your security code and email to edit or manage your guest
+					submission
+				</p>
+			</div>
+			<Card className={"fade-in animate-in duration-500"}>
 				<CardContent>
 					{status === "success" && (
-						<Alert className="mb-6 border-green-500 border-dashed bg-green-50/80 text-green-800">
+						<Alert variant={"success"} className="mb-6">
 							<CheckCircle2 className="!size-4.5" />
 							<AlertTitle>Success!</AlertTitle>
 							<AlertDescription>
@@ -144,7 +145,7 @@ export default function ClaimStoryPage() {
 									type="submit"
 									className="w-full"
 									size={"lg"}
-									disabled={status === "success"}
+									disabled={status === "success" || claimStoryAction.isPending}
 								>
 									{status === "success" ? "Redirecting..." : "Claim Story"}
 								</Button>
@@ -155,7 +156,7 @@ export default function ClaimStoryPage() {
 				<CardFooter className="flex-col text-center text-muted-foreground text-sm">
 					<p>Don't have a security code?</p>
 					<Link
-						href="/submit"
+						href={siteContent.links.submit.href}
 						className="font-medium text-primary hover:underline"
 					>
 						Submit a new story

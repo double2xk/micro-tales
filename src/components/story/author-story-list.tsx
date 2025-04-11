@@ -2,7 +2,7 @@
 import DeleteStoryButton from "@/components/story/delete-story-btn";
 import {Badge} from "@/components/ui/badge";
 import {Button} from "@/components/ui/button";
-import {Card, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";
+import {Card, CardDescription, CardHeader, CardTitle,} from "@/components/ui/card";
 import type {Story, User} from "@/server/db/schema";
 import {api} from "@/trpc/react";
 import {getGenreColorClassName} from "@/utils/colors";
@@ -29,6 +29,8 @@ export default function AuthorStoryList(props: Props) {
 		},
 		{
 			initialData: props.initialStories,
+			gcTime: 0,
+			staleTime: 0,
 		},
 	);
 
@@ -104,9 +106,11 @@ function StoryCard(
 				</Button>
 				{isMe && (
 					<>
-						<Button variant="secondary" size="sm">
-							<Edit className="h-3 w-3" />
-							Edit
+						<Button variant="secondary" size="sm" asChild={true}>
+							<Link href={siteContent.links.editStory.href.replace("{id}", id)}>
+								<Edit className="h-3 w-3" />
+								Edit
+							</Link>
 						</Button>
 						<DeleteStoryButton storyId={id} authorId={authorId ?? ""} />
 					</>

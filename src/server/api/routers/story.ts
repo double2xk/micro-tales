@@ -1,7 +1,10 @@
 import {generateSecretCode} from "@/lib/utils";
 import {db} from "@/server/db";
-import {stories, StoryGenre} from "@/server/db/schema";
+import {editAccessTokens, stories, StoryGenre} from "@/server/db/schema";
+import {generateEditToken} from "@/utils/generateToken";
+import {calculateReadingTime} from "@/utils/story";
 import {TRPCError} from "@trpc/server";
+import {addHours} from "date-fns";
 import {and, count, desc, eq, ilike, or} from "drizzle-orm";
 import {z} from "zod";
 import {createTRPCRouter, protectedProcedure, publicProcedure} from "../trpc";
@@ -12,11 +15,22 @@ export const storyRouter = createTRPCRouter({
 			z.object({
 				title: z.string().min(1, "Title is required"),
 				content: z.string().min(1, "Content is required"),
-				genre: z.nativeEnum(StoryGenre),
+				genre: z.string().default(StoryGenre.Misc),
 				isPublic: z.boolean(),
 			}),
 		)
 		.mutation(async ({ input, ctx }) => {
+			const isValidGenre = await z
+				.nativeEnum(StoryGenre)
+				.safeParseAsync(input.genre);
+
+			if (!isValidGenre.success) {
+				throw new TRPCError({
+					code: "BAD_REQUEST",
+					message: "Invalid genre provided.",
+				});
+			}
+
 			try {
 				// Ensure user is authenticated
 				if (!ctx.session.user.id) {
@@ -33,6 +47,7 @@ export const storyRouter = createTRPCRouter({
 					.insert(stories)
 					.values({
 						...input,
+						genre: input.genre as StoryGenre,
 						authorId: ctx.session.user.id,
 						isGuest: false,
 						readingTime,
@@ -55,17 +70,28 @@ export const storyRouter = createTRPCRouter({
 				});
 			}
 		}),
-
 	createGuestStory: publicProcedure
 		.input(
 			z.object({
 				title: z.string().min(1, "Title is required"),
 				content: z.string().min(1, "Content is required"),
-				genre: z.nativeEnum(StoryGenre),
+				genre: z.string().default(StoryGenre.Misc),
 				isPublic: z.boolean().default(true),
+				isGuest: z.boolean().default(true),
 			}),
 		)
 		.mutation(async ({ input }) => {
+			const isValidGenre = await z
+				.nativeEnum(StoryGenre)
+				.safeParseAsync(input.genre);
+
+			if (!isValidGenre.success) {
+				throw new TRPCError({
+					code: "BAD_REQUEST",
+					message: "Invalid genre provided.",
+				});
+			}
+
 			try {
 				const wordCount = input.content.trim().split(/\s+/).length;
 				const readingTime = Math.ceil(wordCount / 200);
@@ -75,6 +101,7 @@ export const storyRouter = createTRPCRouter({
 					.insert(stories)
 					.values({
 						...input,
+						genre: input.genre as StoryGenre,
 						authorId: null,
 						isGuest: true,
 						secretCode: secret,
@@ -96,6 +123,109 @@ export const storyRouter = createTRPCRouter({
 					code: "INTERNAL_SERVER_ERROR",
 					message: "An error occurred while creating the guest story.",
 				});
+			}
+		}),
+	createStoryWithRegisterToken: publicProcedure
+		.input(
+			z.object({
+				title: z.string().min(1, "Title is required"),
+				content: z.string().min(1, "Content is required"),
+				genre: z.string().default(StoryGenre.Misc),
+				isPublic: z.boolean().default(true),
+			}),
+		)
+		.mutation(async ({ input }) => {
+			const isValidGenre = await z
+				.nativeEnum(StoryGenre)
+				.safeParseAsync(input.genre);
+
+			if (!isValidGenre.success) {
+				throw new TRPCError({
+					code: "BAD_REQUEST",
+					message: "Invalid genre provided.",
+				});
+			}
+
+			try {
+				const readingTime = calculateReadingTime(input.content);
+				const [story] = await db
+					.insert(stories)
+					.values({
+						...input,
+						genre: input.genre as StoryGenre,
+						isGuest: false,
+						authorId: null,
+						readingTime,
+					})
+					.returning();
+
+				if (!story) {
+					throw new TRPCError({
+						code: "INTERNAL_SERVER_ERROR",
+						message: "Error creating story.",
+					});
+				}
+
+				const token = generateEditToken("claim");
+				const expiresAt = addHours(new Date(), 24); // valid for 24 hours
+
+				await db.insert(editAccessTokens).values({
+					storyId: story.id,
+					token,
+					expiresAt,
+				});
+
+				return { storyId: story.id, token };
+			} catch (error) {
+				console.error("Error creating story with register token:", error);
+				throw new TRPCError({
+					code: "INTERNAL_SERVER_ERROR",
+					message: "Failed to create story with registration intent.",
+				});
+			}
+		}),
+	assignStoryAccount: protectedProcedure
+		.input(
+			z.object({
+				token: z.string(),
+			}),
+		)
+		.mutation(async ({ input, ctx }) => {
+			const userId = ctx.session.user.id;
+
+			try {
+				const access = await db.query.editAccessTokens.findFirst({
+					where: eq(editAccessTokens.token, input.token),
+				});
+
+				if (!access?.storyId || new Date() > new Date(access.expiresAt)) {
+					return {
+						success: false,
+						message: "Invalid or expired token.",
+					};
+				}
+
+				const [story] = await db
+					.update(stories)
+					.set({ authorId: userId })
+					.where(eq(stories.id, access.storyId))
+					.returning();
+
+				if (!story) {
+					return {
+						success: false,
+						message: "Story not found.",
+					};
+				}
+
+				await db
+					.delete(editAccessTokens)
+					.where(eq(editAccessTokens.token, input.token));
+
+				return { success: true, story };
+			} catch (error) {
+				console.error("Error assigning story to account:", error);
+				return { success: false, message: "An unknown error occurred." };
 			}
 		}),
 	deleteStory: protectedProcedure
@@ -140,10 +270,75 @@ export const storyRouter = createTRPCRouter({
 				};
 			}
 		}),
+	updateStory: protectedProcedure
+		.input(
+			z.object({
+				id: z.string(),
+				title: z.string().min(1, "Title is required"),
+				content: z.string().min(1, "Content is required"),
+				genre: z.string(),
+				isPublic: z.boolean(),
+			}),
+		)
+		.mutation(async ({ input, ctx }) => {
+			const userId = ctx.session.user.id;
+			const userRole = ctx.session.user.role;
 
+			try {
+				const story = await db.query.stories.findFirst({
+					where: eq(stories.id, input.id),
+				});
+
+				if (!story) {
+					throw new TRPCError({
+						code: "NOT_FOUND",
+						message: "Story not found.",
+					});
+				}
+
+				const isOwner = story.authorId === userId;
+				const isAdmin = userRole === "admin";
+
+				if (!isOwner && !isAdmin) {
+					throw new TRPCError({
+						code: "FORBIDDEN",
+						message: "You do not have permission to edit this story.",
+					});
+				}
+
+				const wordCount = input.content.trim().split(/\s+/).length;
+				const readingTime = Math.ceil(wordCount / 200);
+
+				await db
+					.update(stories)
+					.set({
+						title: input.title,
+						content: input.content,
+						genre: input.genre as StoryGenre,
+						isPublic: input.isPublic,
+						readingTime,
+					})
+					.where(eq(stories.id, input.id));
+
+				return { success: true, message: "Story updated successfully." };
+			} catch (error) {
+				console.error("Error editing story:", error);
+				return {
+					success: false,
+					message: "An error occurred while editing the story.",
+				};
+			}
+		}),
 	getStoryById: publicProcedure
-		.input(z.object({ id: z.string().uuid() }))
+		.input(z.object({ id: z.string() }))
 		.query(async ({ input }) => {
+			const isValidId = await z.string().uuid().safeParseAsync(input.id);
+			if (!isValidId.success) {
+				throw new TRPCError({
+					code: "BAD_REQUEST",
+					message: "Invalid story ID format.",
+				});
+			}
 			try {
 				const story = await db.query.stories.findFirst({
 					where: eq(stories.id, input.id),
@@ -157,7 +352,10 @@ export const storyRouter = createTRPCRouter({
 				});
 
 				if (!story) {
-					return null;
+					throw new TRPCError({
+						code: "NOT_FOUND",
+						message: "Story not found.",
+					});
 				}
 
 				return story;

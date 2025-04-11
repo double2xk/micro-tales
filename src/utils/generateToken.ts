@@ -1,3 +1,3 @@
 import {nanoid} from "nanoid";
 
-export const generateEditToken = () => `edit_${nanoid(24)}`;
+export const generateEditToken = (prefix = "edit") => `${prefix}_${nanoid(24)}`;

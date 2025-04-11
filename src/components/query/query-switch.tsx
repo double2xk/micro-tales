@@ -1,16 +1,17 @@
 "use client";
 
 import {Switch} from "@/components/ui/switch";
-import debounce from 'lodash/debounce';
-import {useRouter, useSearchParams} from 'next/navigation';
-import type React from 'react';
-import {useEffect, useState} from 'react';
+import debounce from "lodash/debounce";
+import {useRouter, useSearchParams} from "next/navigation";
+import type React from "react";
+import {useEffect, useState} from "react";
 
 interface QuerySwitchProps {
 	queryKey: string;
 	defaultValue?: boolean;
 	debounceMs?: number;
 	disabled?: boolean;
+	resetPage?: boolean;
 }
 
 export const QuerySwitch: React.FC<QuerySwitchProps> = ({
@@ -18,6 +19,7 @@ export const QuerySwitch: React.FC<QuerySwitchProps> = ({
 	defaultValue = false,
 	debounceMs = 300,
 	disabled = false,
+	resetPage,
 }) => {
 	const searchParams = useSearchParams();
 	const router = useRouter();
@@ -35,6 +37,10 @@ export const QuerySwitch: React.FC<QuerySwitchProps> = ({
 			params.set(queryKey, String(newValue));
 		} else {
 			params.delete(queryKey);
+		}
+
+		if (resetPage) {
+			params.delete("page");
 		}
 
 		router.push(`?${params.toString()}`);

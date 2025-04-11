@@ -59,6 +59,7 @@ export default async function BrowsePage(props: Props) {
 						queryKey={"search"}
 						placeholder="Search stories..."
 						className={"pl-10"}
+						resetPage={true}
 					/>
 				</div>
 			</div>
@@ -70,6 +71,7 @@ export default async function BrowsePage(props: Props) {
 						<QuerySelect
 							defaultValue={genre}
 							queryKey={"genre"}
+							resetPage={true}
 							options={[
 								{
 									label: "All Genres",
@@ -88,6 +90,7 @@ export default async function BrowsePage(props: Props) {
 						<QuerySelect
 							defaultValue={sortBy}
 							queryKey={"sort"}
+							resetPage={true}
 							options={[
 								{ label: "Newest", value: "newest" },
 								{ label: "Highest Rated", value: "highestRated" },
@@ -117,6 +120,7 @@ export default async function BrowsePage(props: Props) {
 						</Popover>
 						<QuerySwitch
 							queryKey={"publicOnly"}
+							resetPage={true}
 							defaultValue={session?.user?.id ? publicOnly : true}
 							disabled={!session?.user?.id}
 						/>
