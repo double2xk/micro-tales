@@ -76,7 +76,7 @@ export default function SignupPage() {
 	}
 
 	return (
-		<div className="container-centered max-w-md space-y-6">
+		<div className="container-centered max-w-md space-y-6 py-12">
 			<div className="space-y-2 text-center">
 				<h1 className="font-bold font-serif text-3xl">Create an Account</h1>
 				<p className="text-muted-foreground">

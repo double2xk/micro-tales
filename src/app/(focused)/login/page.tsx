@@ -2,7 +2,6 @@
 
 import {Alert, AlertDescription, AlertTitle} from "@/components/ui/alert";
 import {Button} from "@/components/ui/button"
-import {Checkbox} from "@/components/ui/checkbox"
 import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form"
 import {Input} from "@/components/ui/input"
 import {siteContent} from "@/utils/site-content";
@@ -20,21 +19,21 @@ const formSchema = z.object({
 	password: z
 		.string()
 		.min(6, { message: "Password must be at least 6 characters" }),
-	remember: z.boolean().default(false),
+	// remember: z.boolean().default(false),
 });
 
 export default function LoginPage() {
 	const [isLoading, setLoading] = useState(false);
 	const [errorMessage, setErrorMessage] = useState("");
 	const params = useSearchParams();
-	const error = params.get("error");
+	const error = params.get("code");
 
 	const form = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
 		defaultValues: {
 			email: "",
 			password: "",
-			remember: false,
+			// remember: false,
 		},
 	});
 
@@ -44,7 +43,7 @@ export default function LoginPage() {
 		void signIn("credentials", { ...values, redirectTo: "/" }).catch((err) => {
 			setLoading(false);
 			setErrorMessage(
-				err?.message === "CredentialsSignin"
+				err?.code === "credentials"
 					? "Invalid credentials. Please try again."
 					: (err.message ?? "Unknown error"),
 			);
@@ -54,7 +53,7 @@ export default function LoginPage() {
 	useEffect(() => {
 		if (error) {
 			setErrorMessage(
-				error === "CredentialsSignin"
+				error === "credentials"
 					? "Invalid credentials. Please try again."
 					: error,
 			);
@@ -114,22 +113,22 @@ export default function LoginPage() {
 							</FormItem>
 						)}
 					/>
-					<FormField
-						control={form.control}
-						name="remember"
-						render={({ field }) => (
-							<FormItem className={"flex items-center gap-3 py-0.5"}>
-								<FormControl>
-									<Checkbox
-										checked={field.value}
-										onCheckedChange={field.onChange}
-										disabled={isLoading}
-									/>
-								</FormControl>
-								<FormLabel>Remember me</FormLabel>
-							</FormItem>
-						)}
-					/>
+					{/*<FormField*/}
+					{/*	control={form.control}*/}
+					{/*	name="remember"*/}
+					{/*	render={({ field }) => (*/}
+					{/*		<FormItem className={"flex items-center gap-3 py-0.5"}>*/}
+					{/*			<FormControl>*/}
+					{/*				<Checkbox*/}
+					{/*					checked={field.value}*/}
+					{/*					onCheckedChange={field.onChange}*/}
+					{/*					disabled={isLoading}*/}
+					{/*				/>*/}
+					{/*			</FormControl>*/}
+					{/*			<FormLabel>Remember me</FormLabel>*/}
+					{/*		</FormItem>*/}
+					{/*	)}*/}
+					{/*/>*/}
 					{errorMessage ? (
 						<Alert variant={"destructive"}>
 							<AlertTriangleIcon />
