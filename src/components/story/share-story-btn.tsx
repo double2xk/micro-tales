@@ -13,7 +13,7 @@ interface Props extends Omit<ButtonProps, "onClick" | "children"> {
 	storyId: string;
 }
 
-export default function ShareStoryBtn(props: Props) {
+export default function ShareStoryButton(props: Props) {
 	const { storyId, ...rest } = props;
 	return (
 		<Button

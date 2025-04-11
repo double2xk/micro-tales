@@ -1,4 +1,5 @@
-import ShareStoryBtn from "@/components/story/share-story-btn";
+import DeleteStoryButton from "@/components/story/delete-story-btn";
+import ShareStoryButton from "@/components/story/share-story-btn";
 import {Badge} from "@/components/ui/badge";
 import {Button} from "@/components/ui/button";
 import {Popover, PopoverContent, PopoverTrigger,} from "@/components/ui/popover";
@@ -6,12 +7,22 @@ import BackToStories from "@/components/utils/back-to-stories";
 import {RatingStarsWithAction} from "@/components/utils/rating-stars";
 import {cn} from "@/lib/utils";
 import {auth} from "@/server/auth";
+import {UserRole} from "@/server/db/schema";
 import {api} from "@/trpc/server";
 import {getGenreColorClassName} from "@/utils/colors";
 import {siteContent} from "@/utils/site-content";
 import {capitaliseFirstLetter} from "@/utils/string";
 import {format} from "date-fns/format";
-import {ArrowLeft, BadgeInfoIcon, Calendar, Clock, InfoIcon, LogInIcon, PencilLineIcon} from "lucide-react";
+import {
+	ArrowLeft,
+	BadgeInfoIcon,
+	Calendar,
+	Clock,
+	InfoIcon,
+	LogInIcon,
+	PencilLineIcon,
+	TextSelectIcon,
+} from "lucide-react";
 import Link from "next/link";
 
 type Props = {
@@ -22,7 +33,23 @@ type Props = {
 export default async function StoryPage(props: Props) {
 	const { id } = await props.params;
 	const session = await auth();
-	const story = await api.story.getStoryById({ id });
+	console.log(session?.user);
+	const { data: story, success } = await api.story.getStoryById({ id });
+
+	if (!success || !story) {
+		return (
+			<div className="container-centered flex flex-col items-center justify-center gap-3 py-20">
+				<TextSelectIcon className={"size-10"} />
+				<h1 className="text-center font-bold text-2xl">Story not found</h1>
+				<Button asChild={true} size={"lg"} className={"mt-2 min-w-xs"}>
+					<Link href={siteContent.links.stories.href}>
+						<ArrowLeft />
+						Back to Browse
+					</Link>
+				</Button>
+			</div>
+		);
+	}
 
 	if (!session?.user?.id && !story?.isPublic) {
 		return (
@@ -35,20 +62,6 @@ export default async function StoryPage(props: Props) {
 					<Link href={siteContent.links.login.href}>
 						<LogInIcon />
 						Sign In
-					</Link>
-				</Button>
-			</div>
-		);
-	}
-
-	if (!story?.id) {
-		return (
-			<div className="container-centered flex flex-col items-center justify-center gap-3 py-12">
-				<h1 className="text-center font-bold text-2xl">Story not found</h1>
-				<Button asChild={true}>
-					<Link href={"/"}>
-						<ArrowLeft />
-						Back to home
 					</Link>
 				</Button>
 			</div>
@@ -127,17 +140,7 @@ export default async function StoryPage(props: Props) {
 						<RatingStarsWithAction storyId={id} rating={myRating} />
 					</div>
 					<div className="flex gap-2">
-						{story.authorId === session?.user?.id && (
-							<Button asChild={true} size="sm">
-								<Link
-									href={siteContent.links.editStory.href.replace("{id}", id)}
-								>
-									<PencilLineIcon />
-									Edit Story
-								</Link>
-							</Button>
-						)}
-						{!story.authorId && (
+						{!story?.authorId && (
 							<>
 								<Popover>
 									<PopoverTrigger className={"cursor-pointer"}>
@@ -157,12 +160,30 @@ export default async function StoryPage(props: Props) {
 								</Popover>
 								<Button asChild={true} size="sm">
 									<Link href={siteContent.links.claimStory.href}>
-										Edit Story
+										Claim Story
 									</Link>
 								</Button>
 							</>
 						)}
-						<ShareStoryBtn storyId={story.id} variant="outline" size="sm" />
+						<ShareStoryButton storyId={story?.id} variant="outline" size="sm" />
+						{(session?.user?.role === UserRole.Admin ||
+							story?.authorId === session?.user?.id) && (
+							<Button asChild={true} variant={"outline"} size="sm">
+								<Link
+									href={siteContent.links.editStory.href.replace("{id}", id)}
+								>
+									<PencilLineIcon />
+									Edit Story
+								</Link>
+							</Button>
+						)}
+						{session?.user.role === UserRole.Admin && (
+							<DeleteStoryButton
+								storyId={story.id}
+								variant={"destructive"}
+								className={"text-background"}
+							/>
+						)}
 					</div>
 				</div>
 			</div>

@@ -29,7 +29,7 @@ export default function EditPage() {
 
 	const isGuest = !session.data?.user?.id;
 
-	const story = isGuest
+	const { data: story, isPending } = isGuest
 		? api.editToken.getEditStoryDetailsByToken.useQuery(
 				{
 					token: editToken as string,
@@ -47,13 +47,11 @@ export default function EditPage() {
 				},
 			);
 
-	console.log(story);
-
 	const initialValues: SubmitStoryFormValues = {
-		title: story.data?.title || "",
-		genre: (story.data?.genre as StoryGenre) || StoryGenre.Misc,
-		content: story.data?.content || "",
-		isPublic: isGuest ? true : story.data?.isPublic || true,
+		title: story?.data?.title || "",
+		genre: (story?.data?.genre as StoryGenre) || StoryGenre.Misc,
+		content: story?.data?.content || "",
+		isPublic: isGuest ? true : story?.data?.isPublic || true,
 		isGuest: isGuest,
 	};
 
@@ -144,16 +142,20 @@ export default function EditPage() {
 					</h1>
 					<p className="text-muted-foreground">Edit your micro fiction.</p>
 				</div>
-				{story.data ? (
+				{story?.data ? (
 					<div className={"flex gap-2"}>
 						{!story?.data?.authorId && (
 							<Button asChild={true} className={"max-sm:w-full"}>
 								<Link
-									href={`${
-										session.data?.user?.id
-											? siteContent.links.callbackClaim.href
-											: siteContent.links.signup.href
-									}?storyToken=${editToken}`}
+									href={
+										editToken
+											? `${
+													session.data?.user?.id
+														? siteContent.links.callbackClaim.href
+														: siteContent.links.signup.href
+												}?storyToken=${editToken}`
+											: siteContent.links.claimStory.href
+									}
 								>
 									<UserRoundPlus />
 									Claim to your account
@@ -186,7 +188,7 @@ export default function EditPage() {
 					secret={secret}
 					onSubmitAnother={() => router.push(siteContent.links.submit.href)}
 				/>
-			) : story.data ? (
+			) : story?.data ? (
 				<SubmitStoryForm
 					onSubmit={onSubmit}
 					defaultValues={initialValues}
@@ -197,16 +199,12 @@ export default function EditPage() {
 						storyDeleteByTokenAction.isPending
 					}
 				/>
-			) : story.error ? (
+			) : !story?.success && !isPending ? (
 				<Alert variant={"destructive"}>
 					<AlertTriangleIcon />
-					<AlertTitle>
-						{story.error.data?.code === "NOT_FOUND"
-							? "Story not found"
-							: "Error fetching story"}
-					</AlertTitle>
+					<AlertTitle>Failed to load story details</AlertTitle>
 					<AlertDescription>
-						{story.error.message ??
+						{story?.message ??
 							"The edit token you provided is invalid or has expired."}
 					</AlertDescription>
 				</Alert>

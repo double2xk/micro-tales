@@ -36,6 +36,7 @@ export const authConfig = {
 			credentials: {
 				email: { label: "Email", type: "email" },
 				password: { label: "Password", type: "password" },
+				role: { label: "Role", type: "text" },
 			},
 			async authorize(credentials) {
 				const { email, password } = credentials as {
@@ -83,8 +84,16 @@ export const authConfig = {
 		verificationTokensTable: verificationTokens,
 	}),
 	callbacks: {
+		jwt: async ({ token, user }) => {
+			if (user) {
+				token.role = (user as any).role;
+			}
+
+			return token;
+		},
 		session: async ({ session, token }) => {
 			if (token.sub) session.user.id = token.sub;
+			if (token.role) session.user.role = token.role as UserRole;
 			return session;
 		},
 	},

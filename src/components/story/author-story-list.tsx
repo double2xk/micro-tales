@@ -3,7 +3,7 @@ import DeleteStoryButton from "@/components/story/delete-story-btn";
 import {Badge} from "@/components/ui/badge";
 import {Button} from "@/components/ui/button";
 import {Card, CardDescription, CardHeader, CardTitle,} from "@/components/ui/card";
-import type {Story, User} from "@/server/db/schema";
+import {type Story, type User, UserRole} from "@/server/db/schema";
 import {api} from "@/trpc/react";
 import {getGenreColorClassName} from "@/utils/colors";
 import {siteContent} from "@/utils/site-content";
@@ -21,7 +21,9 @@ interface Props {
 }
 
 export default function AuthorStoryList(props: Props) {
-	const isMe = props.authorId === props.session?.user.id;
+	const isMe =
+		props.session?.user.role === UserRole.Admin ||
+		props.authorId === props.session?.user.id;
 
 	const stories = api.story.getStoriesByAuthorId.useQuery(
 		{
@@ -73,10 +75,18 @@ function StoryCard(
 		onDelete,
 	} = props;
 	return (
-		<div className="flex flex-col items-start justify-between rounded-lg border p-4 sm:flex-row sm:items-center">
-			<div className="mb-2 sm:mb-0">
+		<Card className="justify-between p-4 shadow-xs sm:flex-row sm:items-center">
+			<div className="mb-1 sm:mb-0">
 				<div className="flex items-center gap-2">
-					<h3 className="font-medium">{title}</h3>
+					<h3 className="truncate font-medium">{title}</h3>
+					<div className="flex items-center text-muted-foreground text-sm">
+						{isPublic ? (
+							<Eye className="mr-1 h-3 w-3" />
+						) : (
+							<EyeOff className="mr-1 h-3 w-3" />
+						)}
+						<span>{isPublic ? "Public" : "Private"}</span>
+					</div>
 				</div>
 				<div className="mt-2 flex items-center gap-3 text-muted-foreground text-sm">
 					<Badge variant="secondary" className={getGenreColorClassName(genre)}>
@@ -87,17 +97,9 @@ function StoryCard(
 						<span className="mr-1">{rating}</span>
 						<Star className="h-3 w-3 fill-yellow-500 text-yellow-500" />
 					</div>
-					<div className="flex items-center">
-						{isPublic ? (
-							<Eye className="mr-1 h-3 w-3" />
-						) : (
-							<EyeOff className="mr-1 h-3 w-3" />
-						)}
-						<span>{isPublic ? "Public" : "Private"}</span>
-					</div>
 				</div>
 			</div>
-			<div className="flex gap-2">
+			<div className="flex gap-2 max-sm:[&>*]:flex-1">
 				<Button variant="secondary" size="sm" asChild={true}>
 					<Link href={siteContent.links.story.href.replace("{id}", id)}>
 						<Eye />
@@ -116,6 +118,6 @@ function StoryCard(
 					</>
 				)}
 			</div>
-		</div>
+		</Card>
 	);
 }

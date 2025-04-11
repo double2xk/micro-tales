@@ -84,13 +84,18 @@ export const editTokenRouter = createTRPCRouter({
 				}
 
 				// Return the associated story
-				return result.story;
+				return {
+					success: true,
+					data: { ...result.story },
+				};
 			} catch (error) {
 				console.error("Error fetching story by token:", error);
-				throw new TRPCError({
-					code: "INTERNAL_SERVER_ERROR",
-					message: "An error occurred while fetching the story details.",
-				});
+				return {
+					success: false,
+					message:
+						error?.message ??
+						"An error occurred while fetching the story details.",
+				};
 			}
 		}),
 

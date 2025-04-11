@@ -332,14 +332,15 @@ export const storyRouter = createTRPCRouter({
 	getStoryById: publicProcedure
 		.input(z.object({ id: z.string() }))
 		.query(async ({ input }) => {
-			const isValidId = await z.string().uuid().safeParseAsync(input.id);
-			if (!isValidId.success) {
-				throw new TRPCError({
-					code: "BAD_REQUEST",
-					message: "Invalid story ID format.",
-				});
-			}
 			try {
+				const isValidId = await z.string().uuid().safeParseAsync(input.id);
+
+				if (!isValidId.success) {
+					throw new TRPCError({
+						code: "BAD_REQUEST",
+						message: "Invalid story ID format.",
+					});
+				}
 				const story = await db.query.stories.findFirst({
 					where: eq(stories.id, input.id),
 					with: {
@@ -358,13 +359,14 @@ export const storyRouter = createTRPCRouter({
 					});
 				}
 
-				return story;
+				return { success: true, data: { ...story } };
 			} catch (error) {
 				console.error("Error fetching story by ID:", error);
-				throw new TRPCError({
-					code: "INTERNAL_SERVER_ERROR",
-					message: "An error occurred while fetching the story.",
-				});
+				return {
+					success: false,
+					message:
+						error?.message ?? "An error occurred while fetching the story.",
+				};
 			}
 		}),
 

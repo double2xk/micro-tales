@@ -66,7 +66,7 @@ export default async function BrowsePage(props: Props) {
 
 			<div className="mb-8 rounded-lg bg-secondary p-6">
 				<div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-					<div className={"space-y-2"}>
+					<div className={"flex flex-col gap-2"}>
 						<Label htmlFor="genre">Genre</Label>
 						<QuerySelect
 							defaultValue={genre}
@@ -85,7 +85,7 @@ export default async function BrowsePage(props: Props) {
 							placeholder="All Genres"
 						/>
 					</div>
-					<div className={"space-y-2"}>
+					<div className={"flex flex-col gap-2"}>
 						<Label htmlFor="sort">Sort By</Label>
 						<QuerySelect
 							defaultValue={sortBy}

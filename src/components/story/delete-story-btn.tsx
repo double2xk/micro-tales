@@ -1,14 +1,25 @@
 "use client";
 
-import {Button} from "@/components/ui/button";
+import {Button, type buttonVariants} from "@/components/ui/button";
 import {api} from "@/trpc/react";
+import type {VariantProps} from "class-variance-authority";
 import {Trash2} from "lucide-react";
+import type {ComponentProps} from "react";
 import {toast} from "sonner";
 
-export default function DeleteStoryButton(props: {
+type ButtonProps = ComponentProps<"button"> &
+	VariantProps<typeof buttonVariants>;
+
+interface Props extends Omit<ButtonProps, "onClick" | "children"> {
 	storyId: string;
-	authorId: string;
-}) {
+	authorId?: string;
+}
+
+export default function DeleteStoryButton({
+	storyId,
+	authorId,
+	...props
+}: Props) {
 	const utils = api.useUtils();
 
 	const deleteAction = api.story.deleteStory.useMutation({
@@ -16,9 +27,11 @@ export default function DeleteStoryButton(props: {
 		onSuccess: async (data) => {
 			if (data.success) {
 				toast.success(data.message);
-				void utils.story.getStoriesByAuthorId.invalidate({
-					authorId: props.authorId,
-				});
+				if (authorId) {
+					void utils.story.getStoriesByAuthorId.invalidate({
+						authorId: authorId,
+					});
+				}
 			} else {
 				toast.error(data.message ?? "Failed to delete story");
 			}
@@ -30,8 +43,9 @@ export default function DeleteStoryButton(props: {
 			variant="secondary"
 			size="sm"
 			className={"!text-destructive"}
-			onClick={() => deleteAction.mutate({ id: props.storyId })}
+			onClick={() => deleteAction.mutate({ id: storyId })}
 			disabled={deleteAction.isPending}
+			{...props}
 		>
 			<Trash2 className="h-3 w-3" />
 			Delete
