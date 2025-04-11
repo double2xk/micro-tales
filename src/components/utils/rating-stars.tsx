@@ -8,13 +8,22 @@ import {useSession} from "next-auth/react";
 import {useState} from "react";
 import {toast} from "sonner";
 
-const RatingStars = ({ rating }: { rating: number }) => {
+const RatingStars = ({
+	rating,
+	className,
+}: { rating: number; className?: string }) => {
 	return (
 		<div className="flex items-center">
 			{[1, 2, 3, 4, 5].map((star) => (
 				<Star
 					key={star}
-					className={`size-5 ${star <= Math.floor(rating) ? "fill-yellow-500 text-yellow-500" : "text-foreground/20"}`}
+					className={cn(
+						"size-5",
+						star <= Math.floor(rating)
+							? "fill-yellow-500 text-yellow-500"
+							: "text-foreground/20",
+						className,
+					)}
 				/>
 			))}
 		</div>

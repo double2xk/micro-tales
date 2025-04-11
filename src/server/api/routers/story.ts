@@ -180,9 +180,7 @@ export const storyRouter = createTRPCRouter({
 				genre: z.string().optional(),
 				search: z.string().optional(),
 				publicOnly: z.boolean().optional(),
-				sortBy: z
-					.enum(["newest", "highestRated", "mostRead"])
-					.default("newest"),
+				sortBy: z.string().optional().default("newest"),
 			}),
 		)
 		.query(async ({ input }) => {

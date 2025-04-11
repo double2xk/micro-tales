@@ -1,16 +1,20 @@
-import {DebouncedInput} from "@/components/query/input-query";
+import {DebouncedInput} from "@/components/query/query-input";
+import {QueryPagination} from "@/components/query/query-pagination";
+import {QuerySelect} from "@/components/query/query-select";
+import {QuerySwitch} from "@/components/query/query-switch";
 import {Badge} from "@/components/ui/badge";
-import {Button, buttonVariants} from "@/components/ui/button";
+import {Button} from "@/components/ui/button";
 import {Card, CardContent, CardDescription, CardFooter, CardHeader,} from "@/components/ui/card";
 import {Label} from "@/components/ui/label";
-import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue,} from "@/components/ui/select";
-import {Switch} from "@/components/ui/switch";
+import {RatingStars} from "@/components/utils/rating-stars";
 import {cn} from "@/lib/utils";
+import {auth} from "@/server/auth";
 import {type Story, StoryGenre} from "@/server/db/schema";
 import {api} from "@/trpc/server";
 import {getGenreColorClassName} from "@/utils/colors";
 import {siteContent} from "@/utils/site-content";
-import {ArrowRight, Search, Star} from "lucide-react";
+import {capitaliseFirstLetter} from "@/utils/string";
+import {ArrowRight, Search} from "lucide-react";
 import Link from "next/link";
 
 type Props = {
@@ -19,6 +23,7 @@ type Props = {
 };
 
 export default async function BrowsePage(props: Props) {
+	const session = await auth();
 	const searchParams = await props.searchParams;
 	const [page, search, genre, sortBy, publicOnly] = [
 		searchParams.page
@@ -38,7 +43,7 @@ export default async function BrowsePage(props: Props) {
 		search,
 		genre: genre === "all" ? undefined : genre,
 		sortBy,
-		publicOnly,
+		publicOnly: session?.user?.id ? publicOnly : true,
 	});
 
 	return (
@@ -61,65 +66,76 @@ export default async function BrowsePage(props: Props) {
 				<div className="grid grid-cols-1 gap-6 md:grid-cols-3">
 					<div className={"space-y-2"}>
 						<Label htmlFor="genre">Genre</Label>
-						<Select defaultValue="all">
-							<SelectTrigger
-								id="genre"
-								className={cn(
-									buttonVariants({ variant: "outline" }),
-									"w-full justify-between hover:bg-background",
-								)}
-							>
-								<SelectValue placeholder="All Genres" />
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value="all">All Genres</SelectItem>
-								{Object.entries(StoryGenre).map(([key, value]) => (
-									<SelectItem key={key} value={value}>
-										{value.charAt(0).toUpperCase() + value.slice(1)}
-									</SelectItem>
-								))}
-							</SelectContent>
-						</Select>
+						<QuerySelect
+							defaultValue={genre}
+							queryKey={"genre"}
+							options={[
+								{
+									label: "All Genres",
+									value: "all",
+								},
+								...Object.values(StoryGenre).map((value) => ({
+									label: value.charAt(0).toUpperCase() + value.slice(1),
+									value: value,
+								})),
+							]}
+							placeholder="All Genres"
+						/>
 					</div>
 					<div className={"space-y-2"}>
 						<Label htmlFor="sort">Sort By</Label>
-						<Select defaultValue="newest">
-							<SelectTrigger
-								id="sort"
-								className={cn(
-									buttonVariants({ variant: "outline" }),
-									"w-full justify-between hover:bg-background",
-								)}
-							>
-								<SelectValue placeholder="Sort By" />
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value="newest">Newest</SelectItem>
-								<SelectItem value="highest">Highest Rated</SelectItem>
-								<SelectItem value="most-read">Most Read</SelectItem>
-							</SelectContent>
-						</Select>
+						<QuerySelect
+							defaultValue={sortBy}
+							queryKey={"sort"}
+							options={[
+								{ label: "Newest", value: "newest" },
+								{ label: "Highest Rated", value: "highestRated" },
+								{ label: "Most Read", value: "mostRead" },
+							]}
+							placeholder="Newest"
+						/>
 					</div>
 					<div className="flex items-center justify-end space-x-2 pt-6">
-						<Switch id="public-only" />
-						<Label htmlFor="public-only">Public Stories Only</Label>
+						<QuerySwitch queryKey={"publicOnly"} defaultValue={publicOnly} />
+						<Label htmlFor="publicOnly">Public Stories Only</Label>
 					</div>
 				</div>
 			</div>
-
-			<div
-				className={cn(
-					"grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3",
-					stories.data.length ? "h-max" : "min-h-[20rem]",
-				)}
-			>
-				{stories.data.length
-					? stories.data.map((story) => <StoryCard key={story.id} {...story} />)
-					: null}
-			</div>
+			{stories.data.length > 0 ? (
+				<div
+					className={cn(
+						"grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3",
+						stories.data.length ? "h-max" : "min-h-[20rem]",
+					)}
+				>
+					{stories.data.map((story) => (
+						/* @ts-ignore <Author not being indexed but is passed> */
+						<StoryCard key={story.id} {...story} />
+					))}
+				</div>
+			) : (
+				<div className="flex h-[10rem] items-center justify-center">
+					<p className="text-muted-foreground">
+						No stories found. Try changing your search or filters.
+					</p>
+				</div>
+			)}
+			{stories.data.length > 0 && (
+				<div
+					className={"mt-10 flex w-full flex-col items-center justify-center"}
+				>
+					<QueryPagination queryKey={"page"} totalPages={stories.totalPages} />
+					{stories.totalPages > 1 && (
+						<p className="mt-3 text-muted-foreground text-sm">
+							Page {stories.page} of {stories.totalPages}
+						</p>
+					)}
+				</div>
+			)}
 		</div>
 	);
 }
+
 const StoryCard = (props: Story & { author: { name: string } }) => {
 	return (
 		<Card className={"min-h-[14.5rem] gap-1.5"}>
@@ -130,19 +146,14 @@ const StoryCard = (props: Story & { author: { name: string } }) => {
 						variant="default"
 						className={getGenreColorClassName(props.genre as StoryGenre)}
 					>
-						{props.genre.charAt(0).toUpperCase() + props.genre.slice(1)}
+						{capitaliseFirstLetter(props.genre)}
 					</Badge>
 				</div>
 				<CardDescription>by {props?.author?.name}</CardDescription>
 			</CardHeader>
 			<CardContent className={"space-y-2.5"}>
 				<div className="flex items-center">
-					{[1, 2, 3, 4, 5].map((star) => (
-						<Star
-							key={star}
-							className={`h-4 w-4 ${star <= (props.rating ?? 0) ? "fill-yellow-500 text-yellow-500" : "text-foreground/20"}`}
-						/>
-					))}
+					<RatingStars rating={props.rating || 0} className={"size-4"} />
 					<span className="ml-1 text-muted-foreground text-xs">
 						{props.rating}
 					</span>

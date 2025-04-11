@@ -19,7 +19,7 @@ export const getGenreColorClassName = (genre: string) => {
 		case "mystery":
 			return "bg-purple-100 text-purple-400";
 		case "misc":
-			return "bg-gray-100 text-gray-400";
+			return "bg-gray-100 text-gray-500";
 		default:
 			return "bg-gray-100 text-gray-400";
 	}
