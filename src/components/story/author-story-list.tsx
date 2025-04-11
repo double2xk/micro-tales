@@ -9,7 +9,7 @@ import {getGenreColorClassName} from "@/utils/colors";
 import {siteContent} from "@/utils/site-content";
 import {capitaliseFirstLetter} from "@/utils/string";
 import {format} from "date-fns/format";
-import {Edit, Eye, EyeOff, Star} from "lucide-react";
+import {Edit, Eye, EyeOff, PlusIcon, Star} from "lucide-react";
 import type {Session} from "next-auth";
 import Link from "next/link";
 
@@ -18,6 +18,7 @@ interface Props {
 	author: Partial<User>;
 	session: Session | null;
 	authorId: string;
+	authorName: string;
 }
 
 export default function AuthorStoryList(props: Props) {
@@ -37,22 +38,40 @@ export default function AuthorStoryList(props: Props) {
 	);
 
 	return (
-		<div className="space-y-4">
-			{stories.data.length < 1 ? (
-				<Card className={"border-purple-400 border-dashed bg-purple-50"}>
-					<CardHeader>
-						<CardTitle>There are no stories yet. </CardTitle>
-						<CardDescription>
-							{`Maybe some day ${isMe ? "you" : props.author?.name?.split(" ")[0]} will write one?`}
-						</CardDescription>
-					</CardHeader>
-				</Card>
-			) : (
-				stories.data.map((story) => (
-					<StoryCard key={story.id} isMe={isMe} {...story} />
-				))
-			)}
-		</div>
+		<>
+			<div className="mb-6 flex items-center justify-between">
+				<h1 className="font-bold font-serif text-3xl">
+					{isMe ? "My Stories" : `${props.authorName.split(" ")[0]}'s Stories`}
+					{` (${stories.data.length}) `}
+				</h1>
+				{isMe && (
+					<Button asChild={true}>
+						<Link href={siteContent.links.submit.href}>
+							<PlusIcon />
+							New Story
+						</Link>
+					</Button>
+				)}
+			</div>
+			<ul className="space-y-4">
+				{stories.data.length < 1 ? (
+					<Card className={"border-purple-400 border-dashed bg-purple-50"}>
+						<CardHeader>
+							<CardTitle>There are no stories yet. </CardTitle>
+							<CardDescription>
+								{`Maybe some day ${isMe ? "you" : props.author?.name?.split(" ")[0]} will write one?`}
+							</CardDescription>
+						</CardHeader>
+					</Card>
+				) : (
+					stories.data.map((story) => (
+						<li key={story.id}>
+							<StoryCard isMe={isMe} {...story} />
+						</li>
+					))
+				)}
+			</ul>
+		</>
 	);
 }
 

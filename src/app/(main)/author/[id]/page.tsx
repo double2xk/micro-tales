@@ -7,10 +7,9 @@ import {cn} from "@/lib/utils";
 import {auth} from "@/server/auth";
 import {UserRole} from "@/server/db/schema";
 import {api} from "@/trpc/server";
-import {siteContent} from "@/utils/site-content";
 import {capitaliseFirstLetter} from "@/utils/string";
 import {format} from "date-fns/format";
-import {ArrowLeft, Calendar, PlusIcon, Star,} from "lucide-react";
+import {ArrowLeft, Calendar, Star,} from "lucide-react";
 import Link from "next/link";
 
 type Props = {
@@ -105,27 +104,12 @@ export default async function ProfilePage(props: Props) {
 				</div>
 
 				<div className={"w-full"}>
-					<div className="mb-6 flex items-center justify-between">
-						<h1 className="font-bold font-serif text-3xl">
-							{isMe
-								? "My Stories"
-								: `${(author?.name || "Anonymous").split(" ")[0]}'s Stories`}
-							{` (${stories.length}) `}
-						</h1>
-						{isMe && (
-							<Button asChild={true}>
-								<Link href={siteContent.links.submit.href}>
-									<PlusIcon />
-									New Story
-								</Link>
-							</Button>
-						)}
-					</div>
 					<AuthorStoryList
 						initialStories={stories}
 						session={session}
 						author={author}
 						authorId={authorId}
+						authorName={author?.name || "Anonymous"}
 					/>
 				</div>
 			</div>
