@@ -51,8 +51,12 @@ export const ratingRouter = createTRPCRouter({
 			const totalRatings = storyRatings.length;
 			const avgRating =
 				totalRatings > 0
-					? storyRatings.reduce((sum, { rating }) => sum + rating, 0) /
-						totalRatings
+					? Number(
+							(
+								storyRatings.reduce((sum, { rating }) => sum + rating, 0) /
+								totalRatings
+							).toFixed(2),
+						)
 					: 0;
 
 			// Update the story's average rating
