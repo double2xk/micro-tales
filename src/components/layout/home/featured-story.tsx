@@ -12,7 +12,12 @@ import {ArrowRight} from "lucide-react";
 import Link from "next/link";
 
 export default async function FeaturedStory() {
-	const featuredStory = await api.story.getFeaturedStory();
+	const { data } = await api.story.getFeaturedStory();
+
+	if (!data) {
+		return null;
+	}
+
 	return (
 		<section id={"featured-story"}>
 			<div className="container-centered">
@@ -26,7 +31,7 @@ export default async function FeaturedStory() {
 						</p>
 					</div>
 				</div>
-				<FeaturedStoryCard {...featuredStory} />
+				<FeaturedStoryCard {...data} />
 			</div>
 		</section>
 	);

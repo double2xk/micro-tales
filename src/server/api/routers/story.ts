@@ -390,13 +390,18 @@ export const storyRouter = createTRPCRouter({
 				});
 			}
 
-			return result;
+			return {
+				success: true,
+				data: { ...result },
+			};
 		} catch (error) {
 			console.error("Error fetching featured story:", error);
-			throw new TRPCError({
-				code: "INTERNAL_SERVER_ERROR",
-				message: "An error occurred while fetching the featured story.",
-			});
+			return {
+				success: false,
+				message:
+					error?.message ??
+					"An error occurred while fetching the featured story.",
+			};
 		}
 	}),
 
