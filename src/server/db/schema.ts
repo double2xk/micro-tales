@@ -1,5 +1,16 @@
 import {relations, sql} from "drizzle-orm";
-import {boolean, index, integer, pgEnum, pgTableCreator, primaryKey, text, timestamp, uuid,} from "drizzle-orm/pg-core";
+import {
+	boolean,
+	doublePrecision,
+	index,
+	integer,
+	pgEnum,
+	pgTableCreator,
+	primaryKey,
+	text,
+	timestamp,
+	uuid,
+} from "drizzle-orm/pg-core";
 import type {AdapterAccount} from "next-auth/adapters";
 
 /**
@@ -123,7 +134,7 @@ export const stories = createTable("story", {
 	title: text("title").notNull(),
 	content: text("content").notNull(),
 	genre: storyGenreEnum("genre").notNull().default("misc"),
-	rating: integer("rating").default(0),
+	rating: doublePrecision("rating").default(0),
 	views: integer("views").default(0),
 	readingTime: integer("reading_time").notNull(),
 	createdAt: timestamp("created_at").defaultNow(),

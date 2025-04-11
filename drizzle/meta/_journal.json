@@ -36,6 +36,13 @@
       "when": 1744739103259,
       "tag": "0004_wooden_korvac",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1744760099972,
+      "tag": "0005_round_stardust",
+      "breakpoints": true
     }
   ]
 }

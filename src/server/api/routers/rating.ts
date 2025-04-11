@@ -1,7 +1,7 @@
 import {db} from "@/server/db";
 import {ratings, stories} from "@/server/db/schema";
 import {TRPCError} from "@trpc/server";
-import {eq} from "drizzle-orm";
+import {and, eq} from "drizzle-orm";
 import {z} from "zod";
 import {createTRPCRouter, protectedProcedure, publicProcedure} from "../trpc";
 
@@ -18,13 +18,28 @@ export const ratingRouter = createTRPCRouter({
 		.mutation(async ({ input, ctx }) => {
 			const { storyId, userId, rating } = input;
 
-			// Insert the new rating into the ratings table
-			await db.insert(ratings).values({
-				storyId,
-				userId,
-				rating,
-				createdAt: new Date(),
-			});
+			// Find if the user has already rated the story
+			const [existingRating] = await db
+				.select()
+				.from(ratings)
+				.where(and(eq(ratings.storyId, storyId), eq(ratings.userId, userId)))
+				.execute();
+
+			// If the user has already rated the story, update the rating
+			if (existingRating) {
+				await db
+					.update(ratings)
+					.set({ rating })
+					.where(and(eq(ratings.storyId, storyId), eq(ratings.userId, userId)));
+			} else {
+				// Insert the new rating into the ratings table
+				await db.insert(ratings).values({
+					storyId,
+					userId,
+					rating,
+					createdAt: new Date(),
+				});
+			}
 
 			// Calculate the new average rating
 			const storyRatings = await db
@@ -48,12 +63,44 @@ export const ratingRouter = createTRPCRouter({
 
 			return { success: true, avgRating };
 		}),
+	// Get logged-in users rating for a specific story
+	getUsersStoryRating: protectedProcedure
+		.input(z.object({ storyId: z.string().uuid() }))
+		.query(async (opts) => {
+			const {
+				input: { storyId },
+				ctx,
+			} = opts;
+
+			// Check if the user is logged in
+			if (!ctx.session.user.id) {
+				throw new TRPCError({
+					code: "UNAUTHORIZED",
+					message: "User must be logged in to get their rating.",
+				});
+			}
+
+			// Fetch the user's rating for the specific story
+			const rating = await db
+				.select({ rating: ratings.rating })
+				.from(ratings)
+				.where(
+					and(
+						eq(ratings.storyId, storyId),
+						eq(ratings.userId, ctx.session.user.id),
+					),
+				)
+				.limit(1)
+				.execute();
+
+			return rating[0]?.rating ?? 0;
+		}),
 	// Get author rankings based on average rating of their stories
 	getAuthorRanking: publicProcedure.input(z.string()).query(async (opts) => {
 		try {
 			const { input: authorId } = opts;
 
-			// Input validation: Check if authorId is a valid string
+			// Check if authorId is a valid string
 			if (!authorId || typeof authorId !== "string") {
 				throw new TRPCError({
 					code: "BAD_REQUEST",
@@ -61,10 +108,10 @@ export const ratingRouter = createTRPCRouter({
 				});
 			}
 
-			// Step 1: Retrieve all stories for the specific author (user)
 			const stories = await db.query.stories.findMany({
 				where: {
-					authorId: authorId || "", // Match by the authorId (userId)
+					// @ts-ignore
+					authorId: authorId || "",
 				},
 				select: {
 					rating: true, // We only need the rating to calculate the average

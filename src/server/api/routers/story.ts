@@ -1,6 +1,6 @@
 import {generateSecretCode} from "@/lib/utils";
 import {db} from "@/server/db";
-import {stories} from "@/server/db/schema";
+import {stories, StoryGenre} from "@/server/db/schema";
 import {TRPCError} from "@trpc/server";
 import {and, count, desc, eq, ilike, or} from "drizzle-orm";
 import {z} from "zod";
@@ -12,7 +12,7 @@ export const storyRouter = createTRPCRouter({
 			z.object({
 				title: z.string().min(1, "Title is required"),
 				content: z.string().min(1, "Content is required"),
-				genre: z.string().min(1, "Genre is required"),
+				genre: z.nativeEnum(StoryGenre),
 				isPublic: z.boolean(),
 			}),
 		)
@@ -61,7 +61,7 @@ export const storyRouter = createTRPCRouter({
 			z.object({
 				title: z.string().min(1, "Title is required"),
 				content: z.string().min(1, "Content is required"),
-				genre: z.string().min(1, "Genre is required"),
+				genre: z.nativeEnum(StoryGenre),
 				isPublic: z.boolean(),
 			}),
 		)
@@ -105,13 +105,16 @@ export const storyRouter = createTRPCRouter({
 			try {
 				const story = await db.query.stories.findFirst({
 					where: eq(stories.id, input.id),
+					with: {
+						author: {
+							// @ts-ignore
+							name: true,
+						},
+					},
 				});
 
 				if (!story) {
-					throw new TRPCError({
-						code: "NOT_FOUND",
-						message: "Story not found.",
-					});
+					return null;
 				}
 
 				return story;
@@ -189,7 +192,7 @@ export const storyRouter = createTRPCRouter({
 			try {
 				const whereClauses = [];
 
-				if (genre) whereClauses.push(eq(stories.genre, genre));
+				if (genre) whereClauses.push(eq(stories.genre, genre as StoryGenre));
 				if (publicOnly) whereClauses.push(eq(stories.isPublic, publicOnly));
 				if (search)
 					whereClauses.push(

@@ -4,7 +4,6 @@ import SubmitStoryForm, {type SubmitStoryFormValues,} from "@/components/forms/s
 import {Button} from "@/components/ui/button";
 import {Card, CardFooter} from "@/components/ui/card";
 import BackToStories from "@/components/utils/back-to-stories";
-import {cn} from "@/lib/utils";
 import {api} from "@/trpc/react";
 import {siteContent} from "@/utils/site-content";
 import {useSession} from "next-auth/react";
@@ -51,9 +50,7 @@ export default function SubmitPage() {
 	}
 
 	return (
-		<div
-			className={cn("container-centered max-w-lg pb-12", !submitted && "pt-12")}
-		>
+		<div className={"container-centered max-w-lg py-12"}>
 			<BackToStories />
 			<div className="mb-8">
 				<h1 className="mb-2 font-bold font-serif text-3xl">
@@ -92,7 +89,8 @@ export default function SubmitPage() {
 							"Your story has been submitted as a guest. Save your security code to edit your story later."
 						) : (
 							<span>
-								Your story has been submitted. You can view or edit it in your{" "}
+								Your story has been submitted. <br /> You can view or edit it in
+								your{" "}
 								<Link
 									className={"underline"}
 									href={siteContent.links.author.href.replace(

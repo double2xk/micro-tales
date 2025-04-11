@@ -8,7 +8,7 @@ import {Switch} from "@/components/ui/switch";
 import {cn} from "@/lib/utils";
 import {type Story, StoryGenre} from "@/server/db/schema";
 import {api} from "@/trpc/server";
-import {getGenreColor} from "@/utils/colors";
+import {getGenreColorClassName} from "@/utils/colors";
 import {siteContent} from "@/utils/site-content";
 import {ArrowRight, Search, Star} from "lucide-react";
 import Link from "next/link";
@@ -122,13 +122,13 @@ export default async function BrowsePage(props: Props) {
 }
 const StoryCard = (props: Story & { author: { name: string } }) => {
 	return (
-		<Card className={"gap-1.5"}>
+		<Card className={"min-h-[14.5rem] gap-1.5"}>
 			<CardHeader>
 				<div className="flex items-start justify-between">
 					<h3 className="font-bold font-serif text-xl">{props.title}</h3>
 					<Badge
 						variant="default"
-						className={getGenreColor(props.genre as StoryGenre)}
+						className={getGenreColorClassName(props.genre as StoryGenre)}
 					>
 						{props.genre.charAt(0).toUpperCase() + props.genre.slice(1)}
 					</Badge>
