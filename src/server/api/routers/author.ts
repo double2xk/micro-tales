@@ -32,6 +32,7 @@ export const authorRouter = createTRPCRouter({
 			return {
 				id: author.id,
 				name: author.name,
+				role: author.role,
 				createdAt: author.createdAt,
 				updatedAt: author.updatedAt,
 			};

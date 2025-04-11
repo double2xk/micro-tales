@@ -1,15 +1,16 @@
+import AuthorStoryList from "@/components/story/author-story-list";
 import {Avatar, AvatarFallback} from "@/components/ui/avatar";
 import {Badge} from "@/components/ui/badge";
 import {Button} from "@/components/ui/button";
 import {Card, CardContent, CardDescription, CardHeader, CardTitle,} from "@/components/ui/card";
+import {cn} from "@/lib/utils";
 import {auth} from "@/server/auth";
-import type {Story} from "@/server/db/schema";
+import {UserRole} from "@/server/db/schema";
 import {api} from "@/trpc/server";
-import {getGenreColorClassName} from "@/utils/colors";
 import {siteContent} from "@/utils/site-content";
 import {capitaliseFirstLetter} from "@/utils/string";
 import {format} from "date-fns/format";
-import {ArrowLeft, Calendar, Edit, Eye, EyeOff, PlusIcon, Star, Trash2,} from "lucide-react";
+import {ArrowLeft, Calendar, PlusIcon, Star,} from "lucide-react";
 import Link from "next/link";
 
 type Props = {
@@ -19,8 +20,11 @@ type Props = {
 
 export default async function ProfilePage(props: Props) {
 	const { id: authorId } = await props.params;
+
 	const session = await auth();
+
 	const isMe = authorId === session?.user?.id;
+
 	const author = await api.author.getAuthorById({ authorId });
 
 	if (!author?.id) {
@@ -52,7 +56,20 @@ export default async function ProfilePage(props: Props) {
 		<div className="container-centered py-12">
 			<div className="mx-auto grid max-w-[900px] gap-8 lg:grid-cols-[300px_1fr]">
 				<div>
-					<Card>
+					<Card className={"relative overflow-hidden"}>
+						{!!author?.role && (
+							<Badge
+								variant={"default"}
+								className={cn(
+									"absolute top-0 left-0 rounded-none rounded-br-lg px-4 py-1",
+									author.role === UserRole.Admin
+										? "bg-yellow-100 text-yellow-600"
+										: "bg-purple-100 text-purple-500",
+								)}
+							>
+								{capitaliseFirstLetter(author?.role)}
+							</Badge>
+						)}
 						<CardHeader>
 							<div className="mb-2 flex justify-center">
 								<Avatar className="size-24 text-xl uppercase">
@@ -61,7 +78,7 @@ export default async function ProfilePage(props: Props) {
 									</AvatarFallback>
 								</Avatar>
 							</div>
-							<CardTitle className="text-center">{author?.name}</CardTitle>
+							<CardTitle className="text-center">{author?.name} </CardTitle>
 							<CardDescription className="flex items-center justify-center gap-1 text-center">
 								<Calendar className="h-3 w-3" />
 								Joined {format(new Date(author.createdAt || ""), "MMMM yyyy")}
@@ -90,7 +107,9 @@ export default async function ProfilePage(props: Props) {
 				<div className={"w-full"}>
 					<div className="mb-6 flex items-center justify-between">
 						<h1 className="font-bold font-serif text-3xl">
-							{isMe ? "My Stories" : `${author.name}'s Stories`}
+							{isMe
+								? "My Stories"
+								: `${(author?.name || "Anonymous").split(" ")[0]}'s Stories`}
 						</h1>
 						{isMe && (
 							<Button asChild={true}>
@@ -101,87 +120,13 @@ export default async function ProfilePage(props: Props) {
 							</Button>
 						)}
 					</div>
-
-					<div className="space-y-4">
-						{stories.length < 1 ? (
-							<Card className={"border-purple-400 border-dashed bg-purple-50"}>
-								<CardHeader>
-									<CardTitle>There are no stories yet. </CardTitle>
-									<CardDescription>
-										{`Maybe some day ${isMe ? "you" : author?.name?.split(" ")[0]} will write one?`}
-									</CardDescription>
-								</CardHeader>
-							</Card>
-						) : (
-							stories.map((story) => (
-								<StoryCard key={story.id} isMe={isMe} {...story} />
-							))
-						)}
-					</div>
+					<AuthorStoryList
+						initialStories={stories}
+						session={session}
+						author={author}
+						authorId={authorId}
+					/>
 				</div>
-			</div>
-		</div>
-	);
-}
-
-function StoryCard(
-	props: Story & {
-		onDelete?: () => void;
-		isMe: boolean;
-		author: { name: string };
-	},
-) {
-	const { id, title, genre, createdAt, rating, isPublic, isMe, onDelete } =
-		props;
-	return (
-		<div className="flex flex-col items-start justify-between rounded-lg border p-4 sm:flex-row sm:items-center">
-			<div className="mb-2 sm:mb-0">
-				<div className="flex items-center gap-2">
-					<h3 className="font-medium">{title}</h3>
-				</div>
-				<div className="mt-2 flex items-center gap-3 text-muted-foreground text-sm">
-					<Badge variant="secondary" className={getGenreColorClassName(genre)}>
-						{capitaliseFirstLetter(genre)}
-					</Badge>
-					<span>{format(new Date(createdAt || ""), "MMMM dd, yyyy")}</span>
-					<div className="flex items-center">
-						<span className="mr-1">{rating}</span>
-						<Star className="h-3 w-3 fill-yellow-500 text-yellow-500" />
-					</div>
-					<div className="flex items-center">
-						{isPublic ? (
-							<Eye className="mr-1 h-3 w-3" />
-						) : (
-							<EyeOff className="mr-1 h-3 w-3" />
-						)}
-						<span>{isPublic ? "Public" : "Private"}</span>
-					</div>
-				</div>
-			</div>
-			<div className="flex gap-2">
-				<Button variant="secondary" size="sm" asChild={true}>
-					<Link href={siteContent.links.story.href.replace("{id}", id)}>
-						<Eye />
-						View
-					</Link>
-				</Button>
-				{isMe && (
-					<>
-						<Button variant="secondary" size="sm">
-							<Edit className="h-3 w-3" />
-							Edit
-						</Button>
-						<Button
-							variant="secondary"
-							size="sm"
-							className={"!text-destructive"}
-							onClick={onDelete}
-						>
-							<Trash2 className="h-3 w-3" />
-							Delete
-						</Button>
-					</>
-				)}
 			</div>
 		</div>
 	);

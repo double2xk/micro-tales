@@ -9,9 +9,9 @@ export const getGenreColorClassName = (genre: string) => {
 		case "thriller":
 			return "bg-yellow-100 text-yellow-400";
 		case "western":
-			return "bg-amber-100 text-amber-400";
+			return "bg-amber-100 text-amber-600";
 		case "fantasy":
-			return "bg-green-100 text-green-400";
+			return "bg-green-100 text-green-600";
 		case "romance":
 			return "bg-pink-100 text-pink-400";
 		case "sci-fi":

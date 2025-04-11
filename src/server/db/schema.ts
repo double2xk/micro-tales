@@ -24,6 +24,14 @@ export const createTable = pgTableCreator((name) => `micro-tales-app_${name}`);
 // -----------------
 // Account Table
 // -----------------
+
+export const userRoleEnum = pgEnum("user_role", ["admin", "author"]);
+
+export enum UserRole {
+	Admin = "admin",
+	Author = "author",
+}
+
 export const users = createTable("user", (d) => ({
 	id: d
 		.uuid("id")
@@ -37,6 +45,7 @@ export const users = createTable("user", (d) => ({
 			withTimezone: true,
 		})
 		.default(sql`CURRENT_TIMESTAMP`),
+	role: userRoleEnum("role").default(UserRole.Author),
 	passwordHash: d.varchar({ length: 255 }).notNull().default(""),
 	createdAt: d.timestamp("created_at").defaultNow(),
 	updatedAt: d.timestamp("updated_at").defaultNow(),

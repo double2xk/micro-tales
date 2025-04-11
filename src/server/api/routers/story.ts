@@ -98,6 +98,49 @@ export const storyRouter = createTRPCRouter({
 				});
 			}
 		}),
+	deleteStory: protectedProcedure
+		.input(z.object({ id: z.string().uuid() }))
+		.mutation(async ({ input, ctx }) => {
+			const userId = ctx.session.user.id;
+			const userRole = ctx.session.user.role;
+
+			try {
+				// Fetch the story
+				const story = await db.query.stories.findFirst({
+					where: eq(stories.id, input.id),
+				});
+
+				if (!story) {
+					throw new TRPCError({
+						code: "NOT_FOUND",
+						message: "Story not found.",
+					});
+				}
+
+				// Check if the user is the author or an admin
+				const isOwner = story.authorId === userId;
+				const isAdmin = userRole === "admin";
+
+				if (!isOwner && !isAdmin) {
+					throw new TRPCError({
+						code: "FORBIDDEN",
+						message: "You do not have permission to delete this story.",
+					});
+				}
+
+				// Delete the story
+				await db.delete(stories).where(eq(stories.id, input.id));
+
+				return { success: true, message: "Story deleted successfully." };
+			} catch (error) {
+				console.error("Error deleting story:", error);
+				return {
+					success: false,
+					message: "An error occurred while deleting the story.",
+				};
+			}
+		}),
+
 	getStoryById: publicProcedure
 		.input(z.object({ id: z.string().uuid() }))
 		.query(async ({ input }) => {
@@ -108,6 +151,7 @@ export const storyRouter = createTRPCRouter({
 						author: {
 							// @ts-ignore
 							name: true,
+							role: true,
 						},
 					},
 				});

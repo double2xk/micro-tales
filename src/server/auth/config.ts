@@ -1,5 +1,5 @@
 import {db} from "@/server/db";
-import {accounts, sessions, users, verificationTokens,} from "@/server/db/schema";
+import {accounts, sessions, type UserRole, users, verificationTokens,} from "@/server/db/schema";
 import {verifyPassword} from "@/utils/hashPassword";
 import {siteContent} from "@/utils/site-content";
 import {DrizzleAdapter} from "@auth/drizzle-adapter";
@@ -19,6 +19,7 @@ declare module "next-auth" {
 			id: string;
 			name: string;
 			email: string;
+			role: UserRole;
 		};
 	}
 }
@@ -63,6 +64,7 @@ export const authConfig = {
 						id: user.id,
 						name: user.name,
 						email: user.email,
+						role: user.role,
 					};
 				} catch (error) {
 					console.log("[Auth Config] Sign In Error", error);

@@ -43,6 +43,13 @@
       "when": 1744760099972,
       "tag": "0005_round_stardust",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1744811707981,
+      "tag": "0006_spooky_dexter_bennett",
+      "breakpoints": true
     }
   ]
 }
