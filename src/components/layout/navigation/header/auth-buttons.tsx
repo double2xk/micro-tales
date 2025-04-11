@@ -2,7 +2,7 @@
 import {Button} from "@/components/ui/button";
 import {Popover, PopoverContent, PopoverTrigger,} from "@/components/ui/popover";
 import {siteContent} from "@/utils/site-content";
-import {ChevronDown, LogOutIcon, UserCircleIcon} from "lucide-react";
+import {ChevronDown, LogOutIcon, PencilLineIcon, TextIcon, UserCircleIcon,} from "lucide-react";
 import type {Session} from "next-auth";
 import {signOut} from "next-auth/react";
 import Link from "next/link";
@@ -37,6 +37,18 @@ const HeaderAuthButtons = ({ user }: { user: Session["user"] | null }) => {
 							>
 								<UserCircleIcon />
 								Profile
+							</Link>
+						</Button>
+						<Button variant={"ghost"} className={"md:hidden"} asChild={true}>
+							<Link href={siteContent.links.submit.href}>
+								<PencilLineIcon />
+								Submit Story
+							</Link>
+						</Button>
+						<Button variant={"ghost"} className={"md:hidden"} asChild={true}>
+							<Link href={siteContent.links.submit.href}>
+								<TextIcon />
+								Browse Stories
 							</Link>
 						</Button>
 						<Button

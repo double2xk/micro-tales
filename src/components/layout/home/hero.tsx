@@ -1,8 +1,10 @@
 import {Button} from "@/components/ui/button";
+import {auth} from "@/server/auth";
 import {siteContent} from "@/utils/site-content";
 import Link from "next/link";
 
-const Hero = () => {
+const Hero = async () => {
+	const session = await auth();
 	return (
 		<section
 			id={"hero"}
@@ -19,11 +21,25 @@ const Hero = () => {
 						</p>
 					</div>
 					<div className="space-x-2">
-						<Button size="lg" className="rounded-full" asChild={true}>
-							<Link href={siteContent.links.signup.href} prefetch={true}>
-								Join as Author
-							</Link>
-						</Button>
+						{session?.user?.id ? (
+							<Button size="lg" className="rounded-full" asChild={true}>
+								<Link
+									href={siteContent.links.author.href.replace(
+										"{id}",
+										session.user.id,
+									)}
+									prefetch={true}
+								>
+									My Stories
+								</Link>
+							</Button>
+						) : (
+							<Button size="lg" className="rounded-full" asChild={true}>
+								<Link href={siteContent.links.signup.href} prefetch={true}>
+									Join as Author
+								</Link>
+							</Button>
+						)}
 						<Button
 							variant="outline"
 							size="lg"
