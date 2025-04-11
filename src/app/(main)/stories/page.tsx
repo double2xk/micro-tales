@@ -6,6 +6,7 @@ import {Badge} from "@/components/ui/badge";
 import {Button} from "@/components/ui/button";
 import {Card, CardContent, CardDescription, CardFooter, CardHeader,} from "@/components/ui/card";
 import {Label} from "@/components/ui/label";
+import {Popover, PopoverContent, PopoverTrigger,} from "@/components/ui/popover";
 import {RatingStars} from "@/components/utils/rating-stars";
 import {cn} from "@/lib/utils";
 import {auth} from "@/server/auth";
@@ -14,7 +15,7 @@ import {api} from "@/trpc/server";
 import {getGenreColorClassName} from "@/utils/colors";
 import {siteContent} from "@/utils/site-content";
 import {capitaliseFirstLetter} from "@/utils/string";
-import {ArrowRight, Search} from "lucide-react";
+import {ArrowRight, InfoIcon, Search} from "lucide-react";
 import Link from "next/link";
 
 type Props = {
@@ -96,7 +97,29 @@ export default async function BrowsePage(props: Props) {
 						/>
 					</div>
 					<div className="flex items-center justify-end space-x-2 pt-6">
-						<QuerySwitch queryKey={"publicOnly"} defaultValue={publicOnly} />
+						<Popover>
+							<PopoverTrigger
+								className={
+									!session?.user?.id ? "block cursor-pointer" : "hidden"
+								}
+							>
+								<InfoIcon className={"size-4 text-muted-foreground"} />
+							</PopoverTrigger>
+							<PopoverContent
+								align={"center"}
+								side={"top"}
+								className={"whitespace-nowrap bg-primary"}
+							>
+								<p className="text-primary-foreground text-xs">
+									Only logged in users can see private stories.
+								</p>
+							</PopoverContent>
+						</Popover>
+						<QuerySwitch
+							queryKey={"publicOnly"}
+							defaultValue={session?.user?.id ? publicOnly : true}
+							disabled={!session?.user?.id}
+						/>
 						<Label htmlFor="publicOnly">Public Stories Only</Label>
 					</div>
 				</div>

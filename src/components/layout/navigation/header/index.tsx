@@ -56,14 +56,7 @@ const Header = async () => {
 							Claim
 						</Link>
 						<Link
-							href={
-								session?.user?.id
-									? siteContent.links.author.href.replace(
-											"{id}",
-											session.user.id,
-										)
-									: siteContent.links.login.href
-							}
+							href={siteContent.links.authorBase.href}
 							className={
 								"group relative flex items-center delay-100 hover:pl-5"
 							}
@@ -77,7 +70,6 @@ const Header = async () => {
 						</Link>
 					</nav>
 				</div>
-
 				<HeaderAuthButtons user={session?.user || null} />
 			</div>
 		</header>

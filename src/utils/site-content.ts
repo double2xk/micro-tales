@@ -23,6 +23,10 @@ export const siteContent = {
 			href: "/stories/{id}/edit",
 			label: "Edit Story",
 		},
+		authorBase: {
+			href: "/author",
+			label: "Profile",
+		},
 		author: {
 			href: "/author/{id}",
 			label: "Author",
