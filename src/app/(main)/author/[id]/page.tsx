@@ -110,6 +110,7 @@ export default async function ProfilePage(props: Props) {
 							{isMe
 								? "My Stories"
 								: `${(author?.name || "Anonymous").split(" ")[0]}'s Stories`}
+							{` (${stories.length}) `}
 						</h1>
 						{isMe && (
 							<Button asChild={true}>
