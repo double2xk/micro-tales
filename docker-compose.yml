@@ -10,9 +10,23 @@ services:
       - POSTGRES_PASSWORD=password
       - POSTGRES_DB=microtales
     ports:
-      - '5432:5432'
+      - '5432:5432'  # Fixed: This should be 5432, not 3000
     volumes:
       - postgres_data:/var/lib/postgresql/data
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - '3000:3000'
+    environment:
+      - DATABASE_URL=postgresql://postgres:password@db:5432/microtales
+      - AUTH_SECRET=your_auth_secret_here
+      - NODE_ENV=development
+    depends_on:
+      - db
 
 volumes:
   postgres_data:
