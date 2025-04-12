@@ -10,6 +10,7 @@ import {api} from "@/trpc/server";
 import {capitaliseFirstLetter} from "@/utils/string";
 import {format} from "date-fns/format";
 import {ArrowLeft, Calendar, Star,} from "lucide-react";
+import type {Metadata} from "next";
 import Link from "next/link";
 
 type Props = {
@@ -17,12 +18,25 @@ type Props = {
 	searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 };
 
+export async function generateMetadata({
+	params,
+	searchParams,
+}: Props): Promise<Metadata> {
+	const { id } = await params;
+
+	const author = await api.author.getAuthorById({
+		authorId: id,
+	});
+
+	return {
+		title: author?.name || "Author",
+	};
+}
+
 export default async function ProfilePage(props: Props) {
 	const { id: authorId } = await props.params;
 
 	const session = await auth();
-
-	const isMe = authorId === session?.user?.id;
 
 	const author = await api.author.getAuthorById({ authorId });
 

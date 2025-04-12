@@ -1,18 +1,18 @@
 "use client";
 
 import {Alert, AlertDescription, AlertTitle} from "@/components/ui/alert";
-import {Button} from "@/components/ui/button"
-import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form"
-import {Input} from "@/components/ui/input"
+import {Button} from "@/components/ui/button";
+import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage,} from "@/components/ui/form";
+import {Input} from "@/components/ui/input";
 import {siteContent} from "@/utils/site-content";
 import {zodResolver} from "@hookform/resolvers/zod";
 import {AlertTriangleIcon} from "lucide-react";
 import {signIn} from "next-auth/react";
-import Link from "next/link"
-import {useSearchParams} from "next/navigation";
+import Link from "next/link";
+import {useRouter, useSearchParams} from "next/navigation";
 import {useEffect, useState} from "react";
-import {useForm} from "react-hook-form"
-import * as z from "zod"
+import {useForm} from "react-hook-form";
+import * as z from "zod";
 
 const formSchema = z.object({
 	email: z.string().email({ message: "Please enter a valid email address" }),
@@ -23,6 +23,7 @@ const formSchema = z.object({
 
 export default function LoginPage() {
 	const storyRegisterToken = useSearchParams().get("storyToken");
+	const rouer = useRouter();
 
 	const [isLoading, setLoading] = useState(false);
 	const [errorMessage, setErrorMessage] = useState("");
@@ -41,16 +42,23 @@ export default function LoginPage() {
 		setLoading(true);
 		void signIn("credentials", {
 			...values,
-			redirectTo: storyRegisterToken
-				? `${siteContent.links.callbackClaim.href}?storyToken=${storyRegisterToken}`
-				: siteContent.links.authorBase.href,
-		}).catch((err) => {
-			setLoading(false);
-			setErrorMessage(
-				err?.code === "credentials"
-					? "Invalid credentials. Please try again."
-					: (err.message ?? "Unknown error"),
-			);
+			redirect: false,
+		}).then((res) => {
+			if (res?.error) {
+				setLoading(false);
+				setErrorMessage(
+					res?.code === "credentials"
+						? "Invalid credentials. Please try again."
+						: (res?.error ?? "Unknown error"),
+				);
+			}
+			if (res?.ok) {
+				rouer.push(
+					storyRegisterToken
+						? `${siteContent.links.callbackClaim.href}?storyToken=${storyRegisterToken}`
+						: siteContent.links.authorBase.href,
+				);
+			}
 		});
 	}
 
@@ -136,7 +144,10 @@ export default function LoginPage() {
 			</Form>
 			<div className="text-center text-sm">
 				Don't have an account?{" "}
-				<Link href={siteContent.links.signup.href} className="underline">
+				<Link
+					href={`${siteContent.links.signup.href}${storyRegisterToken ? `?storyToken=${storyRegisterToken}` : ""}`}
+					className="underline"
+				>
 					Sign up
 				</Link>
 			</div>

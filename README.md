@@ -1,29 +1,130 @@
-# Create T3 App
+# MicroTales
 
-This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.
+A web platform for sharing and discovering microfiction stories.
 
-## What's next? How do I make an app with this?
+## Overview
 
-We try to keep this project as simple as possible, so you can start with just the scaffolding we set up for you, and add additional things later when they become necessary.
+MicroTales is a full-stack web application that allows users to:
 
-If you are not familiar with the different technologies used in this project, please refer to the respective docs. If you still are in the wind, please join our [Discord](https://t3.gg/discord) and ask for help.
+- Read short microfiction stories (under 500 words)
+- Contribute their own stories as guests or registered authors
+- Rate stories with a star rating system
+- Filter stories by genre and popularity
+- Manage their own authored content
 
-- [Next.js](https://nextjs.org)
-- [NextAuth.js](https://next-auth.js.org)
-- [Prisma](https://prisma.io)
-- [Drizzle](https://orm.drizzle.team)
-- [Tailwind CSS](https://tailwindcss.com)
-- [tRPC](https://trpc.io)
+## Technology Stack
 
-## Learn More
+- **Frontend**: Next.js with TypeScript and Tailwind CSS
+- **Backend**: tRPC for type-safe API
+- **Database**: PostgreSQL with Drizzle ORM
+- **Authentication**: NextAuth.js
+- **Deployment**: Docker and Docker Compose
 
-To learn more about the [T3 Stack](https://create.t3.gg/), take a look at the following resources:
+## Development Setup
 
-- [Documentation](https://create.t3.gg/)
-- [Learn the T3 Stack](https://create.t3.gg/en/faq#what-learning-resources-are-currently-available) — Check out these awesome tutorials
+### Prerequisites
 
-You can check out the [create-t3-app GitHub repository](https://github.com/t3-oss/create-t3-app) — your feedback and contributions are welcome!
+- Node.js 18+
+- pnpm
+- Docker and Docker Compose
 
-## How do I deploy this?
+### Local Development
 
-Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/vercel), [Netlify](https://create.t3.gg/en/deployment/netlify) and [Docker](https://create.t3.gg/en/deployment/docker) for more information.
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/double2xk/micro-tales-vb
+   cd micro-tales-vb
+   ```
+
+2. Install dependencies:
+   ```bash
+   pnpm install
+   ```
+
+3. Start the development database:
+   ```bash
+   chmod +x ./scripts/start-database.sh
+   ./scripts/start-database.sh
+   ```
+
+4. Apply database migrations:
+   ```bash
+   pnpm db:push
+   ```
+
+5. Seed the database with initial data:
+   ```bash
+   pnpm db:seed
+   ```
+
+6. Start the development server:
+   ```bash
+   pnpm dev
+   ```
+
+7. Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+## Production Deployment
+
+### Deploying on Ubuntu Server
+
+1. Obtain a fresh Ubuntu server installation
+
+2. SSH into your server:
+   ```bash
+   ssh user@your-server-ip
+   ```
+
+3. Copy the deployment script to your server:
+   ```bash
+   scp deploy-ubuntu.sh user@your-server-ip:~/
+   ```
+
+4. Make the script executable and run it as root:
+   ```bash
+   chmod +x deploy-ubuntu.sh
+   sudo ./deploy-ubuntu.sh
+   ```
+
+5. The script will:
+    - Install all necessary dependencies
+    - Clone the repository
+    - Set up Docker and PostgreSQL
+    - Configure Nginx as a reverse proxy
+    - Set up SSL with Let's Encrypt
+    - Start the application
+
+### Manual Deployment
+
+If you prefer to deploy manually, follow these steps:
+
+1. Clone the repository on your server
+2. Create a `.env` file with your environment variables
+3. Build the Docker images:
+   ```bash
+   docker compose -f docker-compose.prod.yml build
+   ```
+4. Start the containers:
+   ```bash
+   docker compose -f docker-compose.prod.yml up -d
+   ```
+
+## Features
+
+### Core Features
+
+- **User Authentication**: Secure login and registration
+- **Story Management**: Create, read, update, and delete stories
+- **Rating System**: Rate stories on a 5-star scale
+- **Genre Filtering**: Browse stories by genre
+- **Public/Private Stories**: Control visibility of your stories
+
+### Advanced Features
+
+- **Guest Contributions**: Submit stories without an account
+- **Story Security Codes**: Claim guest stories with secure codes
+
+
+## Acknowledgements
+
+This project was created as part of a web development assessment.

@@ -1,6 +1,6 @@
 const Features = () => {
 	return (
-		<section className="bg-gradient-to-b from-background to-purple-50 py-10">
+		<section className="mt-auto bg-gradient-to-b from-background to-purple-50 py-10">
 			<div className="container-centered">
 				<div className="grid gap-8 lg:grid-cols-3 lg:gap-12">
 					<div className="story-card hover-lift flex flex-col justify-center space-y-4 p-6">

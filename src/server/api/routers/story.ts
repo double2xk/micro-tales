@@ -40,8 +40,7 @@ export const storyRouter = createTRPCRouter({
 					});
 				}
 
-				const wordCount = input.content.trim().split(/\s+/).length;
-				const readingTime = Math.ceil(wordCount / 200);
+				const readingTime = calculateReadingTime(input.content);
 
 				const result = await db
 					.insert(stories)
@@ -93,8 +92,7 @@ export const storyRouter = createTRPCRouter({
 			}
 
 			try {
-				const wordCount = input.content.trim().split(/\s+/).length;
-				const readingTime = Math.ceil(wordCount / 200);
+				const readingTime = calculateReadingTime(input.content);
 				const secret = generateSecretCode();
 
 				const result = await db
@@ -155,6 +153,7 @@ export const storyRouter = createTRPCRouter({
 						genre: input.genre as StoryGenre,
 						isGuest: false,
 						authorId: null,
+						isVisible: false,
 						readingTime,
 					})
 					.returning();
@@ -207,7 +206,7 @@ export const storyRouter = createTRPCRouter({
 
 				const [story] = await db
 					.update(stories)
-					.set({ authorId: userId })
+					.set({ authorId: userId, isVisible: true })
 					.where(eq(stories.id, access.storyId))
 					.returning();
 
@@ -306,8 +305,7 @@ export const storyRouter = createTRPCRouter({
 					});
 				}
 
-				const wordCount = input.content.trim().split(/\s+/).length;
-				const readingTime = Math.ceil(wordCount / 200);
+				const readingTime = calculateReadingTime(input.content);
 
 				await db
 					.update(stories)
@@ -342,13 +340,9 @@ export const storyRouter = createTRPCRouter({
 					});
 				}
 				const story = await db.query.stories.findFirst({
-					where: eq(stories.id, input.id),
+					where: and(eq(stories.id, input.id), eq(stories.isVisible, true)),
 					with: {
-						author: {
-							// @ts-ignore
-							name: true,
-							role: true,
-						},
+						author: true,
 					},
 				});
 
@@ -359,8 +353,17 @@ export const storyRouter = createTRPCRouter({
 					});
 				}
 
-				return { success: true, data: { ...story } };
-			} catch (error) {
+				return {
+					success: true,
+					data: {
+						...story,
+						author: {
+							name: story?.author?.name,
+							role: story?.author?.role,
+						},
+					},
+				};
+			} catch (error: any) {
 				console.error("Error fetching story by ID:", error);
 				return {
 					success: false,
@@ -373,7 +376,11 @@ export const storyRouter = createTRPCRouter({
 	getFeaturedStory: publicProcedure.query(async () => {
 		try {
 			const result = await db.query.stories.findFirst({
-				where: and(eq(stories.isPublic, true), eq(stories.isGuest, false)),
+				where: and(
+					eq(stories.isPublic, true),
+					eq(stories.isGuest, false),
+					eq(stories.isVisible, true),
+				),
 				with: {
 					author: {
 						// @ts-ignore
@@ -394,7 +401,7 @@ export const storyRouter = createTRPCRouter({
 				success: true,
 				data: { ...result },
 			};
-		} catch (error) {
+		} catch (error: any) {
 			console.error("Error fetching featured story:", error);
 			return {
 				success: false,
@@ -410,7 +417,10 @@ export const storyRouter = createTRPCRouter({
 		.query(async ({ input }) => {
 			try {
 				const result = await db.query.stories.findMany({
-					where: eq(stories.authorId, input.authorId),
+					where: and(
+						eq(stories.authorId, input.authorId),
+						eq(stories.isVisible, true),
+					),
 				});
 
 				if (!result || result.length === 0) {
@@ -463,7 +473,7 @@ export const storyRouter = createTRPCRouter({
 
 				const [data, totalCount] = await Promise.all([
 					db.query.stories.findMany({
-						where: and(...whereClauses),
+						where: and(...whereClauses, eq(stories.isVisible, true)),
 						orderBy: [orderClause],
 						limit,
 						offset,

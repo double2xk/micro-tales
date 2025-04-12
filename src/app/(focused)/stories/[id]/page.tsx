@@ -123,8 +123,9 @@ export default async function StoryPage(props: Props) {
 
 			<div className="newspaper-card">
 				<div className="max-w-none space-y-3 font-story text-lg text-paper-charcoal dark:text-paper-vanilla">
-					{story?.content.split("\n\n").map((paragraph, index) => (
-						<p key={index} className="leading-relaxed">
+					{story?.content.split("\n\n").map((paragraph, i) => (
+						// biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
+						<p key={i} className="leading-relaxed">
 							{paragraph}
 						</p>
 					))}

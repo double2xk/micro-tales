@@ -29,8 +29,8 @@ const submitStoryFormSchema = z
 			.string()
 			.min(10, { message: "Story must be at least 10 characters" })
 			.max(2500, { message: "Story must be less than 500 words" }),
-		isPublic: z.boolean().default(true),
-		isGuest: z.boolean().default(false),
+		isPublic: z.boolean(),
+		isGuest: z.boolean(),
 		email: z
 			.string()
 			.email({ message: "Please enter a valid email address" })
@@ -47,6 +47,18 @@ const submitStoryFormSchema = z
 		{
 			message: "Email is required for guest submissions",
 			path: ["email"],
+		},
+	)
+	.refine(
+		(data) => {
+			if (data.genre === "") {
+				return false;
+			}
+			return true;
+		},
+		{
+			message: "Genre is required",
+			path: ["genre"],
 		},
 	);
 
@@ -98,7 +110,7 @@ const SubmitStoryForm = (props: Props) => {
 	return (
 		<Card className={"fade-in animate-in p-6 duration-500"}>
 			{isGuest && (
-				<Alert variant={"info"}>
+				<Alert variant={"info"} className={"fade-in animate-in duration-500"}>
 					<BadgeInfoIcon className="!size-4.5" />
 					<AlertTitle>Submitting as a guest</AlertTitle>
 					<AlertDescription>

@@ -77,22 +77,11 @@ export default function AuthorStoryList(props: Props) {
 
 function StoryCard(
 	props: Story & {
-		onDelete?: () => void;
 		isMe: boolean;
-		author: { name: string };
 	},
 ) {
-	const {
-		id,
-		title,
-		genre,
-		authorId,
-		createdAt,
-		rating,
-		isPublic,
-		isMe,
-		onDelete,
-	} = props;
+	const { id, title, genre, authorId, createdAt, rating, isPublic, isMe } =
+		props;
 	return (
 		<Card className="justify-between p-4 shadow-xs sm:flex-row sm:items-center">
 			<div className="mb-1 sm:mb-0">

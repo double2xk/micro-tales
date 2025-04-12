@@ -2,6 +2,7 @@ import {generateSecretCode} from "@/lib/utils";
 import {db} from "@/server/db";
 import {editAccessTokens, stories, StoryGenre} from "@/server/db/schema";
 import {generateEditToken} from "@/utils/generateToken";
+import {calculateReadingTime} from "@/utils/story";
 import {TRPCError} from "@trpc/server";
 import {addHours} from "date-fns";
 import {and, eq} from "drizzle-orm";
@@ -88,7 +89,7 @@ export const editTokenRouter = createTRPCRouter({
 					success: true,
 					data: { ...result.story },
 				};
-			} catch (error) {
+			} catch (error: any) {
 				console.error("Error fetching story by token:", error);
 				return {
 					success: false,
@@ -125,8 +126,7 @@ export const editTokenRouter = createTRPCRouter({
 				}
 
 				// Calculate the reading time based on content length
-				const wordCount = input.content.trim().split(/\s+/).length;
-				const readingTime = Math.ceil(wordCount / 200);
+				const readingTime = calculateReadingTime(input.content);
 
 				// Generate a new secret code for the story claim
 				const newSecret = generateSecretCode(); // Refresh secret
@@ -143,7 +143,7 @@ export const editTokenRouter = createTRPCRouter({
 						readingTime,
 						secretCode: newSecret,
 					})
-					.where(eq(stories.id, result.storyId))
+					.where(eq(stories.id, result.storyId || ""))
 					.returning();
 
 				// Clean up the edit token
@@ -186,7 +186,7 @@ export const editTokenRouter = createTRPCRouter({
 					.where(eq(editAccessTokens.token, input.token));
 
 				return { success: true };
-			} catch (error) {
+			} catch (error: any) {
 				console.error("Error deleting story by token:", error);
 				return {
 					success: false,

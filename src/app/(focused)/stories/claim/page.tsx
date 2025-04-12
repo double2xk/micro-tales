@@ -75,7 +75,10 @@ export default function ClaimStoryPage() {
 			<Card className={"fade-in animate-in duration-500"}>
 				<CardContent>
 					{status === "success" && (
-						<Alert variant={"success"} className="mb-6">
+						<Alert
+							variant={"success"}
+							className="fade-in mb-6 animate-in duration-500"
+						>
 							<CheckCircle2 className="!size-4.5" />
 							<AlertTitle>Success!</AlertTitle>
 							<AlertDescription>
@@ -85,8 +88,11 @@ export default function ClaimStoryPage() {
 						</Alert>
 					)}
 
-					{status === "error" && (
-						<Alert className="mb-6 border-red-200 border-dashed bg-red-50 text-red-800">
+					{status === "error" && !claimStoryAction.isPending && (
+						<Alert
+							variant={"destructive"}
+							className="fade-in mb-6 animate-in duration-500"
+						>
 							<XCircle className="!size-4.5" />
 							<AlertTitle>Story not found</AlertTitle>
 							<AlertDescription>

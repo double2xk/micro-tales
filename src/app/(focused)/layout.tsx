@@ -1,6 +1,7 @@
 import Footer from "@/components/layout/navigation/footer";
 import {AlbumIcon} from "lucide-react";
 import Link from "next/link";
+import {Suspense} from "react";
 
 const FocusedLayout = ({ children }: { children: React.ReactNode }) => {
 	return (
@@ -19,7 +20,7 @@ const FocusedLayout = ({ children }: { children: React.ReactNode }) => {
 						</Link>
 					</div>
 				</header>
-				{children}
+				<Suspense>{children}</Suspense>
 			</div>
 			<Footer />
 		</main>

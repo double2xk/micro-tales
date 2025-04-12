@@ -26,7 +26,7 @@ async function seed() {
 		},
 	];
 
-	await db.insert(stories).values(exampleStories);
+	await db.insert(stories).values(exampleStories as Story[]);
 
 	const passwordHash = await hashPassword("password123");
 
@@ -47,7 +47,7 @@ async function seed() {
 		},
 	];
 
-	await db.insert(users).values(exampleAccounts);
+	await db.insert(users).values(exampleAccounts as User[]);
 
 	console.log("🌱 Seed complete.");
 }

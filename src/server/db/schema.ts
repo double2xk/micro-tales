@@ -46,6 +46,7 @@ export const users = createTable("user", (d) => ({
 		})
 		.default(sql`CURRENT_TIMESTAMP`),
 	role: userRoleEnum("role").default(UserRole.Author),
+	image: d.varchar({ length: 255 }),
 	passwordHash: d.varchar({ length: 255 }).notNull().default(""),
 	createdAt: d.timestamp("created_at").defaultNow(),
 	updatedAt: d.timestamp("updated_at").defaultNow(),
@@ -63,7 +64,10 @@ export const usersRelations = relations(users, ({ many }) => ({
 export const accounts = createTable(
 	"account",
 	(d) => ({
-		userId: d.uuid("user_id").references(() => users.id),
+		userId: d
+			.uuid("user_id")
+			.notNull()
+			.references(() => users.id),
 		type: d.varchar({ length: 255 }).$type<AdapterAccount["type"]>().notNull(),
 		provider: d.varchar({ length: 255 }).notNull(),
 		providerAccountId: d.varchar({ length: 255 }).notNull(),
@@ -89,7 +93,10 @@ export const sessions = createTable(
 	"session",
 	(d) => ({
 		sessionToken: d.varchar({ length: 255 }).notNull().primaryKey(),
-		userId: d.uuid("user_id").references(() => users.id),
+		userId: d
+			.uuid("user_id")
+			.notNull()
+			.references(() => users.id),
 		expires: d.timestamp({ mode: "date", withTimezone: true }).notNull(),
 	}),
 	(t) => [index("t_user_id_idx").on(t.userId)],
@@ -150,6 +157,7 @@ export const stories = createTable("story", {
 	editedAt: timestamp("edited_at").defaultNow(),
 	isPublic: boolean("is_public").default(true),
 	isGuest: boolean("is_guest").default(false),
+	isVisible: boolean("is_visible").default(true),
 	secretCode: text("secret_code"),
 	authorId: uuid("author_id").references(() => users.id, {
 		onDelete: "set null",
