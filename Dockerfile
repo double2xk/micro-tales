@@ -1,4 +1,4 @@
-# Base Node.js image
+# Base Node.js Alpine image for smaller size
 FROM node:18-alpine AS base
 
 # Install dependencies only when needed
@@ -11,7 +11,7 @@ RUN corepack enable && corepack prepare pnpm@latest --activate
 # Copy package.json and related files
 COPY package.json pnpm-lock.yaml* ./
 
-# Install dependencies
+# Install dependencies (no need for native module support now)
 RUN pnpm install --frozen-lockfile
 
 # Build the application
@@ -24,6 +24,10 @@ RUN corepack enable && corepack prepare pnpm@latest --activate
 # Copy dependencies
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+
+# Create a temporary .env file for build
+RUN echo "DATABASE_URL=postgresql://postgres:password@localhost:5432/micro-tales-app" > .env
+RUN echo "AUTH_SECRET=temporary-secret-for-build-only" >> .env
 
 # Set environment variables for building
 ENV NODE_ENV=production
@@ -49,8 +53,8 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Copy required configuration files
-COPY --from=builder /app/next.config.mjs ./
+# Try to copy configuration files if they exist
+COPY --from=builder /app/next.config.js ./
 COPY --from=builder /app/package.json ./
 
 # Set user to non-root
