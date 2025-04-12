@@ -1,4 +1,4 @@
-# docker-compose.prod.yml for production
+# Production Docker Compose configuration
 version: '3.8'
 
 services:
@@ -13,8 +13,14 @@ services:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   app:
+    image: microtales:latest
     build:
       context: .
       dockerfile: Dockerfile
@@ -26,7 +32,8 @@ services:
       - AUTH_SECRET=${AUTH_SECRET}
       - NODE_ENV=production
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     networks:
       - app-network
 
