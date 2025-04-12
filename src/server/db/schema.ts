@@ -149,7 +149,7 @@ export const stories = createTable("story", {
 	id: uuid("id").defaultRandom().primaryKey(),
 	title: text("title").notNull(),
 	content: text("content").notNull(),
-	genre: storyGenreEnum("genre").notNull().default("misc"),
+	genre: storyGenreEnum("genre").notNull().default(StoryGenre.Misc),
 	rating: doublePrecision("rating").default(0),
 	views: integer("views").default(0),
 	readingTime: integer("reading_time").notNull(),

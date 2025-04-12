@@ -97,9 +97,13 @@ docker compose -f docker-compose.prod.yml up -d --build
 echo "⏳ Waiting for services to initialize..."
 sleep 15
 
-# Run database migrations and seed data
+# Add database initialization here
+echo "🔧 Initializing database..."
+docker compose -f docker-compose.prod.yml exec app pnpm db:generate
+docker compose -f docker-compose.prod.yml exec app pnpm db:push
+
 echo "🌱 Initializing database with seed data..."
-docker compose -f docker-compose.prod.yml exec app npx tsx src/scripts/seed.ts
+docker compose -f docker-compose.prod.yml exec app pnpm db:seed
 
 # Install Nginx
 echo "🌐 Installing and configuring Nginx..."

@@ -100,4 +100,5 @@ export const authConfig = {
 	pages: {
 		signIn: siteContent.links.login.href,
 	},
+	trustHost: true,
 } satisfies NextAuthConfig;
