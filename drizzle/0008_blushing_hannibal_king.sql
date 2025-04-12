@@ -1,1 +1,0 @@
-ALTER TABLE "micro-tales-app_story" ADD COLUMN "is_visible" boolean DEFAULT true;

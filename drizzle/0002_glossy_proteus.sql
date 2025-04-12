@@ -1,2 +1,0 @@
-CREATE TYPE "public"."story_genre" AS ENUM('adventure', 'fantasy', 'horror', 'mystery', 'romance', 'sci-fi', 'thriller', 'western', 'misc');--> statement-breakpoint
-ALTER TABLE "micro-tales-app_story" ALTER COLUMN "genre" SET DATA TYPE story_genre;

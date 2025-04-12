@@ -30,7 +30,7 @@ services:
       - DATABASE_URL=postgresql://postgres:password@db:5432/micro-tales-app
       - AUTH_SECRET=your_auth_secret_here
       - NODE_ENV=development
-    command: sh -c "pnpm db:generate && pnpm db:migrate && pnpm db:seed && node server.js"
+#    command: sh -c "pnpm db:generate && pnpm db:migrate && pnpm db:seed && node server.js"
     depends_on:
       db:
         condition: service_healthy
