@@ -46,7 +46,7 @@ const HeaderAuthButtons = ({ user }: { user: Session["user"] | null }) => {
 							</Link>
 						</Button>
 						<Button variant={"ghost"} className={"md:hidden"} asChild={true}>
-							<Link href={siteContent.links.submit.href}>
+							<Link href={siteContent.links.stories.href}>
 								<TextIcon />
 								Browse Stories
 							</Link>
@@ -56,7 +56,9 @@ const HeaderAuthButtons = ({ user }: { user: Session["user"] | null }) => {
 							size={"sm"}
 							className={"!text-destructive"}
 							onClick={() => {
-								signOut();
+								void signOut({
+									redirectTo: "/",
+								});
 							}}
 						>
 							<LogOutIcon />

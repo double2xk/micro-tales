@@ -1,49 +1,47 @@
-# Base image
-FROM node:18-alpine AS base
+# Base node image
+FROM node:20-alpine AS base
 
-# Dependencies stage
-FROM base AS deps
 WORKDIR /app
+ENV NEXT_TELEMETRY_DISABLED 1
+
+# Install dependencies
+FROM base AS deps
+RUN apk add --no-cache libc6-compat
 RUN corepack enable && corepack prepare pnpm@latest --activate
 COPY package.json pnpm-lock.yaml* ./
 RUN pnpm install --frozen-lockfile
 
-# Build stage
+# Build app
 FROM base AS builder
 WORKDIR /app
+
+# Accept and expose build-time args as env vars
+ARG DATABASE_URL
+ARG AUTH_SECRET
+ENV DATABASE_URL=${DATABASE_URL}
+ENV AUTH_SECRET=${AUTH_SECRET}
+
 RUN corepack enable && corepack prepare pnpm@latest --activate
+
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-COPY tsconfig.json ./
-ENV NODE_ENV=production
-ENV NEXT_TELEMETRY_DISABLED=1
+
 RUN pnpm build
 
-# FINAL stage – runner
+
+# Production runtime
 FROM base AS runner
-WORKDIR /app
-
-# Install pnpm in the final stage
-RUN corepack enable && corepack prepare pnpm@latest --activate
-
-# Copy node_modules and necessary files from builder
-COPY --from=deps /app/node_modules ./node_modules
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/package.json ./
-COPY --from=builder /app/drizzle.config.* ./
-COPY --from=builder /app/drizzle ./drizzle
-COPY --from=builder /app/src ./src
-COPY --from=builder /app/tsconfig.json ./tsconfig.json
-
-# Security (non-root user)
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
-USER nextjs
-
-EXPOSE 3000
 ENV NODE_ENV=production
-ENV PORT=3000
-ENV HOSTNAME=0.0.0.0
 
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 nextjs
+
+WORKDIR /app
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
+#COPY --from=builder /app/.env .env
+
+USER nextjs
+EXPOSE 3000
 CMD ["node", "server.js"]

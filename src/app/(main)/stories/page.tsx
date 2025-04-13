@@ -18,6 +18,8 @@ import {capitaliseFirstLetter} from "@/utils/string";
 import {ArrowRight, InfoIcon, Search} from "lucide-react";
 import Link from "next/link";
 
+export const dynamic = "force-dynamic";
+
 type Props = {
 	params: Promise<{ id: string }>;
 	searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
