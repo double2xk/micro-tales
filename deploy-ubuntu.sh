@@ -67,19 +67,38 @@ cd /opt/${APP_NAME}
 
 # Generate secure passwords for environment variables
 echo "🔑 Creating environment configuration..."
-DB_PASSWORD=$(openssl rand -base64 24)
+POSTGRES_PASSWORD=$(openssl rand -base64 24)
+POSTGRES_USER=postgres
+POSTGRES_DB=${APP_NAME}
+DB_PASSWORD=${POSTGRES_PASSWORD}
 AUTH_SECRET=$(openssl rand -base64 32)
+NEXT_PUBLIC_URL="https://${DOMAIN}"
+PGADMIN_DEFAULT_EMAIL="admin@${DOMAIN}"
+PGADMIN_DEFAULT_PASSWORD=adminpassword
 
 # Create environment file
 cat > /opt/${APP_NAME}/.env << EOL
 # Database
-DATABASE_URL=postgresql://postgres:${DB_PASSWORD}@db:5432/${APP_NAME}
+DATABASE_URL=postgresql://${POSTGRES_USER}:${DB_PASSWORD}@db:5432/${POSTGRES_DB}
 
 # Next Auth
 AUTH_SECRET="${AUTH_SECRET}"
 
 # Node
 NODE_ENV=production
+
+# Next.js
+NEXT_PUBLIC_URL="${NEXT_PUBLIC_URL}"
+
+# PgAdmin
+PGADMIN_DEFAULT_EMAIL="${PGADMIN_DEFAULT_EMAIL}"
+PGADMIN_DEFAULT_PASSWORD="${PGADMIN_DEFAULT_PASSWORD}"
+
+# Postgres
+POSTGRES_USER="${POSTGRES_USER}"
+POSTGRES_PASSWORD="${POSTGRES_PASSWORD}"
+POSTGRES_DB="${POSTGRES_DB}"
+
 EOL
 
 # Build and start the application with Docker Compose
@@ -89,21 +108,28 @@ cd /opt/${APP_NAME}
 # Export environment variables for Docker Compose
 export DB_PASSWORD
 export AUTH_SECRET
+export NEXT_PUBLIC_URL
+export PGADMIN_DEFAULT_EMAIL
+export PGADMIN_DEFAULT_PASSWORD
+export POSTGRES_USER
+export POSTGRES_PASSWORD
+export POSTGRES_DB
 
-# Build and start the containers
-docker compose -f docker-compose.prod.yml up -d --build
+docker compose -f docker-compose.yml up -d --build
 
-# Wait for containers to be ready
-echo "⏳ Waiting for services to initialize..."
-sleep 15
+# Wait for Postgres to be ready
+echo "⏳ Waiting for Postgres to be ready..."
+until docker compose exec -T db pg_isready -U ${POSTGRES_USER}; do
+  sleep 2
+done
 
-# Add database initialization here
-echo "🔧 Initializing database..."
-docker compose -f docker-compose.prod.yml exec app pnpm db:generate
-docker compose -f docker-compose.prod.yml exec app pnpm db:push
-
-echo "🌱 Initializing database with seed data..."
-docker compose -f docker-compose.prod.yml exec app pnpm db:seed
+## Add database initialization here (optional)
+#echo "🔧 Initializing database..."
+#docker compose -f docker-compose.yml exec app pnpm db:generate
+#docker compose -f docker-compose.yml exec app pnpm db:push
+#
+#echo "🌱 Seeding initial data..."
+#docker compose -f docker-compose.yml exec app pnpm db:seed
 
 # Install Nginx
 echo "🌐 Installing and configuring Nginx..."
@@ -129,32 +155,26 @@ server {
 }
 EOL
 
-# Enable the site and remove default if it exists
+# Enable site config
 ln -sf /etc/nginx/sites-available/${APP_NAME} /etc/nginx/sites-enabled/
-if [ -f /etc/nginx/sites-enabled/default ]; then
-    rm /etc/nginx/sites-enabled/default
-fi
+[ -f /etc/nginx/sites-enabled/default ] && rm /etc/nginx/sites-enabled/default
 
-# Test Nginx configuration
+# Test and restart Nginx
 nginx -t
-
-# Restart Nginx
 systemctl restart nginx
 
-# Set up SSL with Certbot (only if domain is configured)
-if [ "${DOMAIN}" != "microtalesvb.com" ]; then
+# Setup SSL with Certbot
+if [ "${DOMAIN}" = "microtalesvb.com" ]; then
     echo "🔒 Setting up SSL with Certbot..."
     apt-get install -y certbot python3-certbot-nginx
     certbot --nginx -d ${DOMAIN} --non-interactive --agree-tos --email ${EMAIL}
-
-    # Set up auto-renewal for SSL
     echo "0 3 * * * certbot renew --quiet" | crontab -
 else
     echo "⚠️ Using default domain name. SSL setup skipped."
     echo "⚠️ Update the DOMAIN variable and run certbot manually when ready."
 fi
 
-# Setup database backup
+# Setup backups
 echo "💾 Setting up database backups..."
 mkdir -p /opt/backups
 
@@ -162,19 +182,21 @@ cat > /opt/backups/backup-db.sh << EOL
 #!/bin/bash
 TIMESTAMP=\$(date +"%Y%m%d-%H%M%S")
 BACKUP_DIR="/opt/backups"
-docker compose -f /opt/${APP_NAME}/docker-compose.prod.yml exec -T db pg_dump -U postgres ${APP_NAME} > \${BACKUP_DIR}/${APP_NAME}-\${TIMESTAMP}.sql
+docker compose -f /opt/${APP_NAME}/docker-compose.yml exec -T db pg_dump -U postgres ${APP_NAME} > \${BACKUP_DIR}/${APP_NAME}-\${TIMESTAMP}.sql
 find \${BACKUP_DIR} -name "*.sql" -type f -mtime +7 -delete
 EOL
 
 chmod +x /opt/backups/backup-db.sh
 (crontab -l 2>/dev/null; echo "0 2 * * * /opt/backups/backup-db.sh") | crontab -
 
-# Create a service restart script
+# Restart script
 cat > /opt/${APP_NAME}/restart.sh << EOL
 #!/bin/bash
 cd /opt/${APP_NAME}
-git pull
-docker compose -f docker-compose.prod.yml up -d --build
+git reset --hard HEAD
+git pull origin main
+docker compose -f docker-compose.yml pull
+docker compose -f docker-compose.yml up -d --build
 EOL
 
 chmod +x /opt/${APP_NAME}/restart.sh
