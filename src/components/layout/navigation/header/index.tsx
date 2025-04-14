@@ -1,12 +1,9 @@
 import HeaderAuthButtons from "@/components/layout/navigation/header/auth-buttons";
-import {auth} from "@/server/auth";
 import {siteContent} from "@/utils/site-content";
 import {AlbumIcon, CircleUserIcon, FilePenLine, PencilLineIcon, TextIcon,} from "lucide-react";
 import Link from "next/link";
 
 const Header = async () => {
-	const session = await auth();
-
 	return (
 		<header className="sticky top-0 z-10 bg-background py-6">
 			<div className="container-centered flex items-center justify-between">
@@ -70,7 +67,7 @@ const Header = async () => {
 						</Link>
 					</nav>
 				</div>
-				<HeaderAuthButtons user={session?.user || null} />
+				<HeaderAuthButtons />
 			</div>
 		</header>
 	);

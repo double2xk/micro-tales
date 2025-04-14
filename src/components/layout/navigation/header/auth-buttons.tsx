@@ -3,11 +3,13 @@ import {Button} from "@/components/ui/button";
 import {Popover, PopoverContent, PopoverTrigger,} from "@/components/ui/popover";
 import {siteContent} from "@/utils/site-content";
 import {ChevronDown, LogOutIcon, PencilLineIcon, TextIcon, UserCircleIcon,} from "lucide-react";
-import type {Session} from "next-auth";
-import {signOut} from "next-auth/react";
+import {signOut, useSession} from "next-auth/react";
 import Link from "next/link";
 
-const HeaderAuthButtons = ({ user }: { user: Session["user"] | null }) => {
+export default function HeaderAuthButtons() {
+	const { data } = useSession();
+	const user = data?.user;
+
 	return (
 		<div className="flex items-center gap-2">
 			{user?.id ? (
@@ -57,6 +59,7 @@ const HeaderAuthButtons = ({ user }: { user: Session["user"] | null }) => {
 							className={"!text-destructive"}
 							onClick={() => {
 								void signOut({
+									redirect: true,
 									redirectTo: "/",
 								});
 							}}
@@ -78,6 +81,4 @@ const HeaderAuthButtons = ({ user }: { user: Session["user"] | null }) => {
 			)}
 		</div>
 	);
-};
-
-export default HeaderAuthButtons;
+}

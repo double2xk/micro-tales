@@ -61,7 +61,9 @@ export default async function ProfilePage(props: Props) {
 	let averageRating = 0;
 
 	if (stories.length) {
-		const ratings = stories.map((story) => story.rating);
+		const ratings = stories
+			.map((story) => story.rating)
+			.filter((r) => r !== null && r > 0);
 		const sum = ratings.reduce((acc, rating) => (acc ?? 0) + (rating ?? 0), 0);
 		const average = sum ? sum / ratings.length : 0;
 		averageRating = Math.round(average * 10) / 10;

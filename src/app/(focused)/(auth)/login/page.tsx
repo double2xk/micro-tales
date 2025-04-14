@@ -23,7 +23,7 @@ const formSchema = z.object({
 
 export default function LoginPage() {
 	const storyRegisterToken = useSearchParams().get("storyToken");
-	const rouer = useRouter();
+	const router = useRouter();
 
 	const [isLoading, setLoading] = useState(false);
 	const [errorMessage, setErrorMessage] = useState("");
@@ -53,7 +53,7 @@ export default function LoginPage() {
 				);
 			}
 			if (res?.ok) {
-				rouer.push(
+				router.push(
 					storyRegisterToken
 						? `${siteContent.links.callbackClaim.href}?storyToken=${storyRegisterToken}`
 						: siteContent.links.authorBase.href,
