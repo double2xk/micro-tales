@@ -1,5 +1,3 @@
-I'll add the development installation instructions and default account information to the deployment guide. Here's the updated version:
-
 # 🚀 MicroTales - Ubuntu Deployment Guide
 This guide helps you deploy the **MicroTales** web app on a fresh Ubuntu server in just a few steps.
 ---
@@ -100,11 +98,11 @@ Once deployment finishes, you can access the app via the following URLs:
 ## 👤 Default Accounts
 The application comes with the following pre-configured accounts:
 - **Admin Account:**
-    - Email: admin@admin.com
-    - Password: password123
+   - Email: admin@admin.com
+   - Password: password123
 - **Test User Account:**
-    - Email: john@doe.com
-    - Password: password123
+   - Email: john@doe.com
+   - Password: password123
 
 ## 🔧 Additional Notes
 - The application is deployed using Docker containers, so make sure Docker is properly installed on your Ubuntu server.
