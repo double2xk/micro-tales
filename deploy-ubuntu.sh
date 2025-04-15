@@ -68,21 +68,24 @@ cd /opt/${APP_NAME}
 # Generate secure passwords for environment variables
 echo "🔑 Creating environment configuration..."
 
-POSTGRES_PASSWORD=password # Basic password for demo purposes
+POSTGRES_PASSWORD=$(openssl rand -base64 24)
+
+# URL encode the password for DATABASE_URL
+ENCODED_PASSWORD=$(python3 -c "import urllib.parse; print(urllib.parse.quote_plus('$POSTGRES_PASSWORD'))")
+
+
 POSTGRES_USER=postgres
 POSTGRES_DB=${APP_NAME}
 
 DB_PASSWORD=${POSTGRES_PASSWORD}
-DATABASE_URL="postgresql://${POSTGRES_USER}:${DB_PASSWORD}@db:5432/${POSTGRES_DB}"
+DATABASE_URL="postgresql://${POSTGRES_USER}:${ENCODED_PASSWORD}@db:5432/${POSTGRES_DB}"
 
-AUTH_SECRET=demo_auth_secret # In real app you would generate it with openssl or similar
+AUTH_SECRET=$(openssl rand -base64 32)
 
 NEXT_PUBLIC_URL="https://${DOMAIN}"
 
 PGADMIN_DEFAULT_EMAIL="admin@${DOMAIN}"
 PGADMIN_DEFAULT_PASSWORD=adminpassword
-
-HOSTNAME=${DOMAIN}
 
 # Create environment file
 cat > /opt/${APP_NAME}/.env << EOL
@@ -97,7 +100,6 @@ NODE_ENV=production
 
 # Next.js
 NEXT_PUBLIC_URL="${NEXT_PUBLIC_URL}"
-HOSTNAME="${HOSTNAME}"
 
 # PgAdmin
 PGADMIN_DEFAULT_EMAIL="${PGADMIN_DEFAULT_EMAIL}"
@@ -124,6 +126,11 @@ export POSTGRES_USER
 export POSTGRES_PASSWORD
 export POSTGRES_DB
 export DATABASE_URL
+
+# Display the environment variables for debug
+echo "🔑 Creating environment configuration..."
+echo "POSTGRES_USER: ${POSTGRES_USER}"
+echo "DATABASE_URL: ${DATABASE_URL}"
 
 docker compose -f docker-compose.yml up -d --build
 
