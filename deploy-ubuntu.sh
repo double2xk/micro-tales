@@ -68,7 +68,7 @@ cd /opt/${APP_NAME}
 # Generate secure passwords for environment variables
 echo "🔑 Creating environment configuration..."
 
-POSTGRES_PASSWORD=$(openssl rand -base64 24)
+POSTGRES_PASSWORD=password # Basic password for demo purposes
 POSTGRES_USER=postgres
 POSTGRES_DB=${APP_NAME}
 
