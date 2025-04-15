@@ -67,7 +67,7 @@ cd /opt/${APP_NAME}
 
 # Generate secure passwords for environment variables
 echo "🔑 Creating environment configuration..."
-POSTGRES_PASSWORD=$(openssl rand -base64 24)
+POSTGRES_PASSWORD=demopassword # In real app you would generate it with openssl or similar
 POSTGRES_USER=postgres
 POSTGRES_DB=${APP_NAME}
 DB_PASSWORD=${POSTGRES_PASSWORD}
@@ -75,11 +75,12 @@ AUTH_SECRET=$(openssl rand -base64 32)
 NEXT_PUBLIC_URL="https://${DOMAIN}"
 PGADMIN_DEFAULT_EMAIL="admin@${DOMAIN}"
 PGADMIN_DEFAULT_PASSWORD=adminpassword
+DATABASE_URL="postgresql://${POSTGRES_USER}:${DB_PASSWORD}@db:5432/${POSTGRES_DB}"
 
 # Create environment file
 cat > /opt/${APP_NAME}/.env << EOL
 # Database
-DATABASE_URL=postgresql://${POSTGRES_USER}:${DB_PASSWORD}@db:5432/${POSTGRES_DB}
+DATABASE_URL=${DATABASE_URL}
 
 # Next Auth
 AUTH_SECRET="${AUTH_SECRET}"
@@ -114,6 +115,7 @@ export PGADMIN_DEFAULT_PASSWORD
 export POSTGRES_USER
 export POSTGRES_PASSWORD
 export POSTGRES_DB
+export DATABASE_URL
 
 docker compose -f docker-compose.yml up -d --build
 
