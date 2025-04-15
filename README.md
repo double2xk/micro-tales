@@ -4,7 +4,7 @@ I'll add the development installation instructions and default account informati
 This guide helps you deploy the **MicroTales** web app on a fresh Ubuntu server in just a few steps.
 ---
 ## 🧰 Requirements
-- A **fresh Ubuntu installation** (tested on Ubuntu 22.04)
+- A **fresh Ubuntu installation** (tested on Ubuntu 25.04 ARM64)
 - Internet access
 - `curl` installed
 ---
