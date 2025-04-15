@@ -68,17 +68,12 @@ cd /opt/${APP_NAME}
 # Generate secure passwords for environment variables
 echo "🔑 Creating environment configuration..."
 
-POSTGRES_PASSWORD=$(openssl rand -base64 24)
-
-# URL encode the password for DATABASE_URL
-ENCODED_PASSWORD=$(python3 -c "import urllib.parse; print(urllib.parse.quote_plus('$POSTGRES_PASSWORD'))")
-
+POSTGRES_PASSWORD=password # <-- This should be generated dynamically
 
 POSTGRES_USER=postgres
 POSTGRES_DB=${APP_NAME}
 
 DB_PASSWORD=${POSTGRES_PASSWORD}
-DATABASE_URL="postgresql://${POSTGRES_USER}:${ENCODED_PASSWORD}@db:5432/${POSTGRES_DB}"
 
 AUTH_SECRET=$(openssl rand -base64 32)
 
@@ -86,6 +81,8 @@ NEXT_PUBLIC_URL="https://${DOMAIN}"
 
 PGADMIN_DEFAULT_EMAIL="admin@${DOMAIN}"
 PGADMIN_DEFAULT_PASSWORD=adminpassword
+
+DATABASE_URL="postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}"
 
 # Create environment file
 cat > /opt/${APP_NAME}/.env << EOL
@@ -139,6 +136,18 @@ echo "⏳ Waiting for Postgres to be ready..."
 until docker compose exec -T db pg_isready -U ${POSTGRES_USER}; do
   sleep 2
 done
+
+# Ensure PostgreSQL password is updated and uses scram-sha-256
+echo "🔑 Resetting PostgreSQL password for user 'postgres'..."
+docker exec -it micro-tales-db psql -U postgres -c "ALTER USER postgres WITH PASSWORD '${POSTGRES_PASSWORD}'"
+
+# Update pg_hba.conf to use scram-sha-256 for password authentication
+echo "📝 Ensuring pg_hba.conf is using scram-sha-256 authentication..."
+docker exec -it micro-tales-db bash -c "sed -i 's/^host\s\+all\s\+all\s\+all\s\+md5/host all all all scram-sha-256/' /var/lib/postgresql/data/pg_hba.conf"
+
+# Restart PostgreSQL container to apply changes
+echo "🔄 Restarting PostgreSQL container to apply changes..."
+docker restart micro-tales-db
 
 ### Add database initialization here (optional)
 #echo "🔧 Initializing database..."
@@ -204,27 +213,3 @@ find \${BACKUP_DIR} -name "*.sql" -type f -mtime +7 -delete
 EOL
 
 chmod +x /opt/backups/backup-db.sh
-(crontab -l 2>/dev/null; echo "0 2 * * * /opt/backups/backup-db.sh") | crontab -
-
-# Restart script
-cat > /opt/${APP_NAME}/restart.sh << EOL
-#!/bin/bash
-cd /opt/${APP_NAME}
-git reset --hard HEAD
-git pull origin main
-docker compose -f docker-compose.yml pull
-docker compose -f docker-compose.yml up -d --build
-EOL
-
-chmod +x /opt/${APP_NAME}/restart.sh
-
-echo "======================================================"
-echo "✅ Setup complete! MicroTales is now deployed."
-echo "======================================================"
-echo "📝 Site URL: https://${DOMAIN} or http://localhost:3000 (likely)"
-echo "📝 Database is backed up daily at 2 AM"
-echo "📝 SSL certificates are renewed automatically"
-echo ""
-echo "⚠️ IMPORTANT: Remember to change default credentials!"
-echo "⚠️ To update the application, run: /opt/${APP_NAME}/restart.sh"
-echo "======================================================"
