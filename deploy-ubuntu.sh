@@ -133,13 +133,13 @@ until docker compose exec -T db pg_isready -U ${POSTGRES_USER}; do
   sleep 2
 done
 
-## Add database initialization here (optional)
-echo "🔧 Initializing database..."
-docker compose -f docker-compose.yml exec app pnpm db:generate
-docker compose -f docker-compose.yml exec app pnpm db:migrate
-
-echo "🌱 Seeding initial data..."
-docker compose -f docker-compose.yml exec app pnpm db:seed
+### Add database initialization here (optional)
+#echo "🔧 Initializing database..."
+#docker compose -f docker-compose.yml exec app pnpm db:generate
+#docker compose -f docker-compose.yml exec app pnpm db:migrate
+#
+#echo "🌱 Seeding initial data..."
+#docker compose -f docker-compose.yml exec app pnpm db:seed
 
 # Install Nginx
 echo "🌐 Installing and configuring Nginx..."
