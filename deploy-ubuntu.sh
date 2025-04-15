@@ -85,7 +85,7 @@ PGADMIN_DEFAULT_PASSWORD=adminpassword
 
 DATABASE_URL="postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}"
 
-HOST="0.0.0.0"
+HOSTNAME="0.0.0.0"
 
 # Create environment file
 cat > /opt/${APP_NAME}/.env << EOL
@@ -112,7 +112,7 @@ POSTGRES_PASSWORD="${POSTGRES_PASSWORD}"
 POSTGRES_DB="${POSTGRES_DB}"
 
 # Host
-HOST="${HOST}"
+HOSTNAME="${HOSTNAME}"
 
 EOL
 
