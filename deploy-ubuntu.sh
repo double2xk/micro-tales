@@ -67,15 +67,20 @@ cd /opt/${APP_NAME}
 
 # Generate secure passwords for environment variables
 echo "🔑 Creating environment configuration..."
+
 POSTGRES_PASSWORD=demopassword # In real app you would generate it with openssl or similar
 POSTGRES_USER=postgres
 POSTGRES_DB=${APP_NAME}
+
 DB_PASSWORD=${POSTGRES_PASSWORD}
-AUTH_SECRET=$(openssl rand -base64 32)
+DATABASE_URL="postgresql://${POSTGRES_USER}:${DB_PASSWORD}@db:5432/${POSTGRES_DB}"
+
+AUTH_SECRET=demo_auth_secret # In real app you would generate it with openssl or similar
+
 NEXT_PUBLIC_URL="https://${DOMAIN}"
+
 PGADMIN_DEFAULT_EMAIL="admin@${DOMAIN}"
 PGADMIN_DEFAULT_PASSWORD=adminpassword
-DATABASE_URL="postgresql://${POSTGRES_USER}:${DB_PASSWORD}@db:5432/${POSTGRES_DB}"
 
 # Create environment file
 cat > /opt/${APP_NAME}/.env << EOL
