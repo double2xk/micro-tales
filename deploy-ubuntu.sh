@@ -131,6 +131,7 @@ export POSTGRES_PASSWORD
 export POSTGRES_DB
 export DATABASE_URL
 export NEXTAUTH_URL
+export HOSTNAME
 
 # Display the environment variables for debug
 echo "🔑 Creating environment configuration..."
