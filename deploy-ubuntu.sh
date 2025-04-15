@@ -216,3 +216,12 @@ find \${BACKUP_DIR} -name "*.sql" -type f -mtime +7 -delete
 EOL
 
 chmod +x /opt/backups/backup-db.sh
+
+
+# Information about viewing docker logs
+echo "======================================================"
+echo "🚀 MicroTales is now running!"
+echo "You can access it at: http://${DOMAIN} or localhost:3000 (likely to be proxied)"
+echo "To view logs, use the following command:"
+echo "docker compose -f /opt/${APP_NAME}/docker-compose.yml logs -f"
+echo "======================================================"
