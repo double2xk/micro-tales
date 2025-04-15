@@ -164,7 +164,7 @@ nginx -t
 systemctl restart nginx
 
 # Setup SSL with Certbot
-if [ "${DOMAIN}" = "microtalesvb.com" ]; then
+if [ "${DOMAIN}" != "microtalesvb.com" ]; then
     echo "🔒 Setting up SSL with Certbot..."
     apt-get install -y certbot python3-certbot-nginx
     certbot --nginx -d ${DOMAIN} --non-interactive --agree-tos --email ${EMAIL}
