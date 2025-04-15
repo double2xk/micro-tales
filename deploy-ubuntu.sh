@@ -68,7 +68,7 @@ cd /opt/${APP_NAME}
 # Generate secure passwords for environment variables
 echo "🔑 Creating environment configuration..."
 
-POSTGRES_PASSWORD=demopassword # In real app you would generate it with openssl or similar
+POSTGRES_PASSWORD=$(openssl rand -base64 24)
 POSTGRES_USER=postgres
 POSTGRES_DB=${APP_NAME}
 
@@ -81,6 +81,8 @@ NEXT_PUBLIC_URL="https://${DOMAIN}"
 
 PGADMIN_DEFAULT_EMAIL="admin@${DOMAIN}"
 PGADMIN_DEFAULT_PASSWORD=adminpassword
+
+HOSTNAME=${DOMAIN}
 
 # Create environment file
 cat > /opt/${APP_NAME}/.env << EOL
@@ -95,6 +97,7 @@ NODE_ENV=production
 
 # Next.js
 NEXT_PUBLIC_URL="${NEXT_PUBLIC_URL}"
+HOSTNAME="${HOSTNAME}"
 
 # PgAdmin
 PGADMIN_DEFAULT_EMAIL="${PGADMIN_DEFAULT_EMAIL}"
@@ -131,12 +134,12 @@ until docker compose exec -T db pg_isready -U ${POSTGRES_USER}; do
 done
 
 ## Add database initialization here (optional)
-#echo "🔧 Initializing database..."
-#docker compose -f docker-compose.yml exec app pnpm db:generate
-#docker compose -f docker-compose.yml exec app pnpm db:push
-#
-#echo "🌱 Seeding initial data..."
-#docker compose -f docker-compose.yml exec app pnpm db:seed
+echo "🔧 Initializing database..."
+docker compose -f docker-compose.yml exec app pnpm db:generate
+docker compose -f docker-compose.yml exec app pnpm db:migrate
+
+echo "🌱 Seeding initial data..."
+docker compose -f docker-compose.yml exec app pnpm db:seed
 
 # Install Nginx
 echo "🌐 Installing and configuring Nginx..."
@@ -211,7 +214,7 @@ chmod +x /opt/${APP_NAME}/restart.sh
 echo "======================================================"
 echo "✅ Setup complete! MicroTales is now deployed."
 echo "======================================================"
-echo "📝 Site URL: https://${DOMAIN}"
+echo "📝 Site URL: https://${DOMAIN} or http://localhost:3000 (likely)"
 echo "📝 Database is backed up daily at 2 AM"
 echo "📝 SSL certificates are renewed automatically"
 echo ""

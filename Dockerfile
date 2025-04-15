@@ -18,6 +18,7 @@ WORKDIR /app
 # Accept and expose build-time args as env vars
 ARG DATABASE_URL
 ARG AUTH_SECRET
+
 ENV DATABASE_URL=${DATABASE_URL}
 ENV AUTH_SECRET=${AUTH_SECRET}
 
