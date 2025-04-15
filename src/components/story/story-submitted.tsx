@@ -48,7 +48,9 @@ export default function StorySubmitted(props: {
 			</CardContent>
 			<CardFooter className={"justify-center gap-3 max-sm:flex-col"}>
 				<Button variant="outline" className={"max-sm:w-full"} asChild={true}>
-					<Link href={siteContent.links.stories.href}>Browse Stories</Link>
+					<Link href={siteContent.links.stories.href} prefetch={true}>
+						Browse Stories
+					</Link>
 				</Button>
 				<Button
 					className={"max-sm:w-full"}
