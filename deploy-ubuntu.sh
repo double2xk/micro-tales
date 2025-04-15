@@ -78,6 +78,7 @@ DB_PASSWORD=${POSTGRES_PASSWORD}
 AUTH_SECRET=$(openssl rand -base64 32)
 
 NEXT_PUBLIC_URL="https://${DOMAIN}"
+NEXTAUTH_URL="https://${DOMAIN}"
 
 PGADMIN_DEFAULT_EMAIL="admin@${DOMAIN}"
 PGADMIN_DEFAULT_PASSWORD=adminpassword
@@ -91,6 +92,7 @@ DATABASE_URL=${DATABASE_URL}
 
 # Next Auth
 AUTH_SECRET="${AUTH_SECRET}"
+NEXTAUTH_URL="${NEXTAUTH_URL}"
 
 # Node
 NODE_ENV=production
@@ -123,6 +125,7 @@ export POSTGRES_USER
 export POSTGRES_PASSWORD
 export POSTGRES_DB
 export DATABASE_URL
+export NEXTAUTH_URL
 
 # Display the environment variables for debug
 echo "🔑 Creating environment configuration..."

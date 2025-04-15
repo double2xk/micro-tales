@@ -15,6 +15,9 @@ const config = {
 	 */
 	output: "standalone",
 
+	basePath: process.env.NEXT_PUBLIC_URL,
+	assetPrefix: process.env.NEXT_PUBLIC_URL,
+
 	// Add a custom webpack config for optimizations if needed
 	webpack: (config, { isServer }) => {
 		// Only run in production builds
