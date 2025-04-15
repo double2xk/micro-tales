@@ -14,6 +14,7 @@ const Header = async () => {
 					</Link>
 					<nav className="hidden gap-8 md:flex [&>a]:transition-all [&>a]:hover:font-semibold">
 						<Link
+							prefetch={true}
 							href={siteContent.links.stories.href}
 							className={
 								"group relative flex items-center delay-100 hover:pl-5"
@@ -53,6 +54,7 @@ const Header = async () => {
 							Claim
 						</Link>
 						<Link
+							prefetch={true}
 							href={siteContent.links.authorBase.href}
 							className={
 								"group relative flex items-center delay-100 hover:pl-5"

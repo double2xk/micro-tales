@@ -9,7 +9,7 @@ import {zodResolver} from "@hookform/resolvers/zod";
 import {AlertTriangleIcon} from "lucide-react";
 import {signIn} from "next-auth/react";
 import Link from "next/link";
-import {useRouter, useSearchParams} from "next/navigation";
+import {useSearchParams} from "next/navigation";
 import {useEffect, useState} from "react";
 import {useForm} from "react-hook-form";
 import * as z from "zod";
@@ -23,7 +23,6 @@ const formSchema = z.object({
 
 export default function LoginPage() {
 	const storyRegisterToken = useSearchParams().get("storyToken");
-	const router = useRouter();
 
 	const [isLoading, setLoading] = useState(false);
 	const [errorMessage, setErrorMessage] = useState("");
@@ -53,11 +52,10 @@ export default function LoginPage() {
 				);
 			}
 			if (res?.ok) {
-				router.push(
-					storyRegisterToken
-						? `${siteContent.links.callbackClaim.href}?storyToken=${storyRegisterToken}`
-						: siteContent.links.authorBase.href,
-				);
+				// Hard refresh using window location
+				window.location.href = storyRegisterToken
+					? `${siteContent.links.callbackClaim.href}?storyToken=${storyRegisterToken}`
+					: siteContent.links.authorBase.href;
 			}
 		});
 	}

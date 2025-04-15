@@ -36,6 +36,7 @@ export default function HeaderAuthButtons() {
 						<Button variant={"ghost"} asChild={true}>
 							<Link
 								href={siteContent.links.author.href.replace("{id}", user.id)}
+								prefetch={true}
 							>
 								<UserCircleIcon />
 								Profile
@@ -48,7 +49,7 @@ export default function HeaderAuthButtons() {
 							</Link>
 						</Button>
 						<Button variant={"ghost"} className={"md:hidden"} asChild={true}>
-							<Link href={siteContent.links.stories.href}>
+							<Link href={siteContent.links.stories.href} prefetch={true}>
 								<TextIcon />
 								Browse Stories
 							</Link>
