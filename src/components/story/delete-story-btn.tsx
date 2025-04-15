@@ -4,6 +4,7 @@ import {Button, type buttonVariants} from "@/components/ui/button";
 import {api} from "@/trpc/react";
 import type {VariantProps} from "class-variance-authority";
 import {Trash2} from "lucide-react";
+import {useRouter} from "next/navigation";
 import type {ComponentProps} from "react";
 import {toast} from "sonner";
 
@@ -13,14 +14,17 @@ type ButtonProps = ComponentProps<"button"> &
 interface Props extends Omit<ButtonProps, "onClick" | "children"> {
 	storyId: string;
 	authorId?: string;
+	redirectTo?: string;
 }
 
 export default function DeleteStoryButton({
 	storyId,
 	authorId,
+	redirectTo,
 	...props
 }: Props) {
 	const utils = api.useUtils();
+	const router = useRouter();
 
 	const deleteAction = api.story.deleteStory.useMutation({
 		mutationKey: ["deleteStory"],
@@ -31,6 +35,10 @@ export default function DeleteStoryButton({
 					void utils.story.getStoriesByAuthorId.invalidate({
 						authorId: authorId,
 					});
+				}
+				if (redirectTo) {
+					toast("Redirecting...");
+					router.push(redirectTo);
 				}
 			} else {
 				toast.error(data.message ?? "Failed to delete story");

@@ -185,6 +185,7 @@ export default async function StoryPage(props: Props) {
 								storyId={story.id}
 								variant={"destructive"}
 								className={"text-background"}
+								redirectTo={siteContent.links.stories.href}
 							/>
 						)}
 					</div>
