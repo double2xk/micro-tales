@@ -1,5 +1,3 @@
-#!/bin/bash
-
 # Exit on error
 set -e
 # Print each command before executing (for debugging)
@@ -148,4 +146,6 @@ echo "======================================================"
 echo "✅ MicroTales deployed!"
 echo "🌍 Access it at: http://${DOMAIN}"
 echo "📦 View logs: docker compose -f /opt/${APP_NAME}/docker-compose.yml logs -f"
+echo "🔄 Restart app: docker compose -f /opt/${APP_NAME}/docker-compose.yml restart"
+echo "🛑 Stop app: docker compose -f /opt/${APP_NAME}/docker-compose.yml down"
 echo "======================================================"

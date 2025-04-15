@@ -1,130 +1,79 @@
-# MicroTales
+I'll format the second half of your deployment guide in proper Markdown format to match the first half. Here you go:
 
-A web platform for sharing and discovering microfiction stories.
+# 🚀 MicroTales - Ubuntu Deployment Guide
+This guide helps you deploy the **MicroTales** web app on a fresh Ubuntu server in just a few steps.
+---
+## 🧰 Requirements
+- A **fresh Ubuntu installation** (tested on Ubuntu 25.04 ARM64)
+- Internet access
+- `curl` installed
+---
+## 📦 Install `curl` (if not already installed)
+First, ensure `curl` is installed. If it's not installed, you can install it with the following command:
+```bash
+sudo apt update && sudo apt install curl -y
+```
 
-## Overview
+## ⚙️ Run the Setup Script
+To deploy the application, you need to download and run the deployment script.
 
-MicroTales is a full-stack web application that allows users to:
+### Step 1: Download the Deployment Script
+Run the following command to download the deploy-ubuntu.sh script from the GitHub repository:
+```bash
+sudo curl -O https://raw.githubusercontent.com/double2xk/micro-tales-vb/refs/heads/main/scripts/deploy-ubuntu.sh
+```
 
-- Read short microfiction stories (under 500 words)
-- Contribute their own stories as guests or registered authors
-- Rate stories with a star rating system
-- Filter stories by genre and popularity
-- Manage their own authored content
+### Step 2: Make the Script Executable
+Change the permissions to make the script executable:
+```bash
+chmod +x deploy-ubuntu.sh
+```
 
-## Technology Stack
+### Step 3: Run the Script
+Now, run the deployment script:
+```bash
+sudo ./deploy-ubuntu.sh
+```
 
-- **Frontend**: Next.js with TypeScript and Tailwind CSS
-- **Backend**: tRPC for type-safe API
-- **Database**: PostgreSQL with Drizzle ORM
-- **Authentication**: NextAuth.js
-- **Deployment**: Docker and Docker Compose
+## 🧹 Troubleshooting (Cleanup)
+If something goes wrong during the deployment, you can use the cleanup script to reset your environment and try again.
 
-## Development Setup
+### Step 1: Download the Cleanup Script
+Run the following command to download the cleanup script:
+```bash
+curl -O https://raw.githubusercontent.com/double2xk/micro-tales-vb/refs/heads/main/scripts/cleanup-ubuntu.sh
+```
 
-### Prerequisites
+### Step 2: Make the Cleanup Script Executable
+Change the permissions to make the script executable:
+```bash
+chmod +x cleanup-ubuntu.sh
+```
 
-- Node.js 18+
-- pnpm
-- Docker and Docker Compose
+### Step 3: Run the Cleanup Script
+Run the cleanup script to reset your environment:
+```bash
+sudo ./cleanup-ubuntu.sh
+```
 
-### Local Development
+### Step 4: Re-run the Deployment Script
+After cleanup, try running the deploy-ubuntu.sh script again:
+```bash
+sudo ./deploy-ubuntu.sh
+```
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/double2xk/micro-tales-vb
-   cd micro-tales-vb
-   ```
+## 🌐 Domain Configuration
+During deployment, if you're using a local setup (e.g., microtales.local), the script will automatically add the necessary entry to your `/etc/hosts` file.
 
-2. Install dependencies:
-   ```bash
-   pnpm install
-   ```
+If you're using a custom domain, follow the instructions that will be outputted by the deployment script for setting up SSL and DNS.
 
-3. Start the development database:
-   ```bash
-   chmod +x ./scripts/start-database.sh
-   ./scripts/start-database.sh
-   ```
+> **Note:** The script automatically handles SSL configuration if you're using a valid domain name.
 
-4. Apply database migrations:
-   ```bash
-   pnpm db:push
-   ```
+## ✅ Done!
+Once deployment finishes, you can access the app via the following URLs:
+- **Local Access:** http://microtales.local
+- **Custom Domain:** If you configured a custom domain, access it using that domain (e.g., http://yourdomain.com).
 
-5. Seed the database with initial data:
-   ```bash
-   pnpm db:seed
-   ```
-
-6. Start the development server:
-   ```bash
-   pnpm dev
-   ```
-
-7. Open [http://localhost:3000](http://localhost:3000) in your browser.
-
-## Production Deployment
-
-### Deploying on Ubuntu Server
-
-1. Obtain a fresh Ubuntu server installation
-
-2. SSH into your server:
-   ```bash
-   ssh user@your-server-ip
-   ```
-
-3. Copy the deployment script to your server:
-   ```bash
-   scp deploy-ubuntu.sh user@your-server-ip:~/
-   ```
-
-4. Make the script executable and run it as root:
-   ```bash
-   chmod +x deploy-ubuntu.sh
-   sudo ./deploy-ubuntu.sh
-   ```
-
-5. The script will:
-    - Install all necessary dependencies
-    - Clone the repository
-    - Set up Docker and PostgreSQL
-    - Configure Nginx as a reverse proxy
-    - Set up SSL with Let's Encrypt
-    - Start the application
-
-### Manual Deployment
-
-If you prefer to deploy manually, follow these steps:
-
-1. Clone the repository on your server
-2. Create a `.env` file with your environment variables
-3. Build the Docker images:
-   ```bash
-   docker compose -f docker-compose.prod.yml build
-   ```
-4. Start the containers:
-   ```bash
-   docker compose -f docker-compose.prod.yml up -d
-   ```
-
-## Features
-
-### Core Features
-
-- **User Authentication**: Secure login and registration
-- **Story Management**: Create, read, update, and delete stories
-- **Rating System**: Rate stories on a 5-star scale
-- **Genre Filtering**: Browse stories by genre
-- **Public/Private Stories**: Control visibility of your stories
-
-### Advanced Features
-
-- **Guest Contributions**: Submit stories without an account
-- **Story Security Codes**: Claim guest stories with secure codes
-
-
-## Acknowledgements
-
-This project was created as part of a web development assessment.
+## 🔧 Additional Notes
+- The application is deployed using Docker containers, so make sure Docker is properly installed on your Ubuntu server.
+- If you're setting up SSL with Certbot, ensure your domain is correctly pointed to your server's IP address.
