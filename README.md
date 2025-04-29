@@ -18,7 +18,7 @@ To deploy the application, you need to download and run the deployment script.
 ### Step 1: Download the Deployment Script
 Run the following command to download the deploy-ubuntu.sh script from the GitHub repository:
 ```bash
-sudo curl -O https://raw.githubusercontent.com/double2xk/micro-tales-vb/refs/heads/main/scripts/deploy-ubuntu.sh
+sudo curl -O https://raw.githubusercontent.com/double2xk/micro-tales/refs/heads/main/scripts/deploy-ubuntu.sh
 ```
 
 ### Step 2: Make the Script Executable
