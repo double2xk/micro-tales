@@ -11,7 +11,7 @@ fi
 
 # === CONFIGURATION ===
 APP_NAME="microtales"
-GIT_REPO="https://github.com/double2xk/micro-tales-vb"
+GIT_REPO="https://github.com/double2xk/micro-tales"
 DOMAIN="microtales.local"
 EMAIL="admin@microtales.local"
 
